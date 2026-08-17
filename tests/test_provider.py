@@ -120,7 +120,7 @@ def test_expired_bedrock_key_is_reported_as_a_credential_problem(monkeypatch):
                 body=None,
             )
 
-    monkeypatch.setattr(bedrock._client, "responses", _Expired())
+    monkeypatch.setattr(bedrock._client.chat, "completions", _Expired())
 
     with pytest.raises(P.ProviderConfigError, match="short-term key"):
         bedrock.complete(system="s", user="u", model="m", max_tokens=10)

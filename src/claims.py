@@ -263,8 +263,14 @@ def _matching_entries(value: float, entries: list[TableEntry], tolerance: float)
 #: silently removes the number from every check that follows. Only the
 #: following character can distinguish the two, since "1,480.3, beating" has a
 #: digit on the left of a genuine boundary.
+#:
+#: A parenthetical is a boundary too. "2,056, above the naive forecast
+#: of 1,596.5 (which understated actual by 22.3%) and slightly above the upside
+#: forecast of 2,024.4" compares one subject against two objects; without the
+#: bracket the two objects get read as a comparison with each other. Splitting
+#: on "and" as well would also work and costs a real catch, so it is left out.
 _CLAUSE_SPLIT = re.compile(
-    r",(?!\d)|[;:]|—|--|\bthough\b|\byet\b|\bwhile\b|\bwhereas\b|\bbut\b|\bhowever\b|\balthough\b",
+    r",(?!\d)|[;:()]|—|--|\bthough\b|\byet\b|\bwhile\b|\bwhereas\b|\bbut\b|\bhowever\b|\balthough\b",
     re.IGNORECASE,
 )
 

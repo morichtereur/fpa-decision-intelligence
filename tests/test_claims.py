@@ -93,6 +93,16 @@ def test_comparisons_do_not_reach_across_clauses():
     )["clean"]
 
 
+def test_one_subject_compared_against_two_objects_is_not_a_comparison_between_them():
+    """Real Bedrock output that the checker first flagged wrongly. 2,056 is
+    above both forecasts; 1,596.5 and 2,024.4 are its two objects, not a
+    comparison with each other. A parenthetical and an "and" separate them."""
+    assert check(
+        "Operating profit was 2,056, above the naive forecast of 1,596.5 (which understated "
+        "actual by 22.3%) and slightly above the driver-based forecast of 1,750.0."
+    )["clean"]
+
+
 def test_thousands_separators_do_not_split_a_clause():
     """A comma inside "2,056" is not a clause boundary. Splitting on it cut the
     number in half and silently disabled every downstream check."""

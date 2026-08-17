@@ -63,6 +63,17 @@ Every stored commentary records the provider, model and token usage that
 produced it. Generated financial prose without that attribution cannot be
 checked later against the vendor it is supposed to have come from.
 
+The Bedrock model was picked by measurement rather than by name. Running the
+same prompt across the endpoint's catalogue and scoring each output with this
+repository's own two verifiers, the obvious first choice —
+`openai.gpt-oss-120b` — turned out to be unusable: it ignores the length and
+format constraints and computes figures the prompt forbids it to compute,
+inventing several that are in no table. `nvidia.nemotron-super-3-120b`
+returned plain prose at a 1.0 grounding rate with no coherence findings, and
+is the default. That is the guardrail earning its keep in an unglamorous way:
+not catching a hallucination in production, but disqualifying a model before
+it got there.
+
 ### What the guardrail does not catch
 
 A grounding rate measures the model. `eval/eval_verifier.py` measures the

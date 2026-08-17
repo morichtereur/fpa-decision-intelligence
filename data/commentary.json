@@ -1,52 +1,122 @@
 {
   "base": {
-    "text": "The driver-based forecast proved significantly more accurate than the naive top-down approach across all three key metrics. Revenue came in at 24,811 versus a driver-based forecast of 25,585.2, a miss of 3.1 percent, compared to the naive forecast's 5.5 percent overestimation. Operating profit showed the largest divergence between methods: actual results of 2,056 fell short of the driver-based forecast of 1,750.0 by 14.9 percent, whereas the naive forecast understated profit by 22.3 percent. Free cash flow of 1,106.4 was closest to the driver-based estimate of 1,069.2, undershooting by just 3.4 percent, versus the naive forecast's 14.8 percent overestimation.",
+    "text": "The driver-based forecast under discussion shows a mixed performance relative to actual results, with improved accuracy over the naive forecast but notable underpredictions in key profitability and cash flow metrics. Revenue was projected at 25,585.2, missing actual revenue of 24,811 by 3.1% due to an overstatement, while operating profit was forecast at 1,750.0 against an actual of 2,056, resulting in a 14.9% understatement. Free cash flow was projected at 1,069.2, falling short of the actual 1,106.4 by 3.4%, indicating a slight underprediction in cash generation. Compared to the naive forecast, the driver-based approach reduced errors across all three metrics, particularly improving the operating profit forecast from a 22.3% understatement to 14.9%. The forecast correctly captured the direction of deviation for each line item, though it consistently underestimated operating profitability and free cash flow despite outperforming the top-down extrapolation.",
     "grounding": {
-      "total_claims": 12,
-      "grounded": 12,
+      "total_claims": 11,
+      "grounded": 11,
       "ungrounded": [],
       "grounding_rate": 1.0
     },
-    "generated_at": "2026-08-17T03:30:19.108941+00:00"
+    "coherence": {
+      "sentences": 5,
+      "findings": [],
+      "finding_count": 0,
+      "clean": true
+    },
+    "provenance": {
+      "provider": "bedrock",
+      "model": "nvidia.nemotron-super-3-120b",
+      "usage": {
+        "input_tokens": 666,
+        "output_tokens": 225
+      }
+    },
+    "generated_at": "2026-08-17T20:58:01.080019+00:00"
   },
   "upside": {
-    "text": "Revenue came in at 24811, slightly below the upside scenario of 25822.1, representing a 4.1% miss. Operating profit delivered 2056, nearly matching the upside forecast of 2024.4, which was off by just 1.5%. However, free cash flow reached 1106.4 against the upside projection of 1360.4, underperforming by 23.0%, primarily driven by higher working capital requirements and capital allocation differences than the scenario anticipated. The naive top-down extrapolation significantly overestimated both revenue and free cash flow, at 26176.5 and 1270.2 respectively, though it notably underestimated operating profit at 1596.5 versus actual 2056, demonstrating the value of the driver-based upside case in capturing operational efficiency that the linear extrapolation missed.",
+    "text": "The actual revenue of $24,811 million was understated by both the naive and upside forecasts, with the naive forecast missing actual by 5.5% and the upside forecast missing by 4.1%. Actual operating profit of $2,056 million was overstated by the naive forecast (-22.3% error, meaning it was too low) but slightly understated by the upside forecast (-1.5% error, meaning the upside forecast was just below actual). Actual free cash flow of $1,106.4 million was overstated by the naive forecast (14.8% error, meaning it was too low) and significantly overstated by the upside forecast (23.0% error, meaning it was too low).",
     "grounding": {
-      "total_claims": 13,
-      "grounded": 13,
+      "total_claims": 9,
+      "grounded": 9,
       "ungrounded": [],
       "grounding_rate": 1.0
     },
-    "generated_at": "2026-08-17T03:30:21.459010+00:00"
+    "coherence": {
+      "sentences": 3,
+      "findings": [],
+      "finding_count": 0,
+      "clean": true
+    },
+    "provenance": {
+      "provider": "bedrock",
+      "model": "nvidia.nemotron-super-3-120b",
+      "usage": {
+        "input_tokens": 653,
+        "output_tokens": 160
+      }
+    },
+    "generated_at": "2026-08-17T20:58:02.872470+00:00"
   },
   "downside": {
-    "text": "Revenue came in below both forecasts, with actual results of 24811 versus the naive forecast of 26176.5 (5.5% miss) and the downside scenario of 25348.3 (2.2% miss). Operating profit significantly outperformed expectations, delivering 2056 against the naive forecast of 1596.5 and the downside scenario of 1480.3, beating both by 22.3% and 28.0% respectively. Free cash flow of 1106.4 fell short of the naive forecast of 1270.2 by 14.8%, and substantially exceeded the downside scenario of 783.9 by 29.1%, driven by strong operational profitability that more than offset the revenue shortfall.",
+    "text": "The downside scenario understated revenue by 2.2%, operating profit by 28.0%, and free cash flow by 29.1% compared to actual results. This reflects a significant shortfall in profitability and cash generation relative to what occurred, despite revenue being relatively closer to forecast. The gap between the downside scenario and actual performance widened notably at the operating profit and free cash flow levels, indicating that cost, tax, or working capital assumptions in the scenario were overly pessimistic or failed to capture actual resilience in the business.",
     "grounding": {
-      "total_claims": 15,
-      "grounded": 15,
+      "total_claims": 3,
+      "grounded": 3,
       "ungrounded": [],
       "grounding_rate": 1.0
     },
-    "generated_at": "2026-08-17T03:30:23.491629+00:00"
+    "coherence": {
+      "sentences": 3,
+      "findings": [],
+      "finding_count": 0,
+      "clean": true
+    },
+    "provenance": {
+      "provider": "bedrock",
+      "model": "nvidia.nemotron-super-3-120b",
+      "usage": {
+        "input_tokens": 653,
+        "output_tokens": 112
+      }
+    },
+    "generated_at": "2026-08-17T20:58:04.035999+00:00"
   },
   "wc_stress": {
-    "text": "Actual revenue of 24811 fell short of the naive forecast by 5.5%, while operating profit outperformed by 22.3%, reaching 2056 versus the predicted 1596.5. Free cash flow came in below the naive expectation by 14.8%, at 1106.4 compared to 1270.2. The working capital stress case was closer on revenue, missing by only 3.1%, but significantly underestimated free cash flow generation, projecting just 429.6 against the actual 1106.4\u2014a 61.2% shortfall driven by overestimation of working capital requirements and their cash impact.",
+    "text": "The working capital stress scenario shows revenue 3.1% above actual, resulting in an overstatement, while operating profit was understated by 14.9% and free cash flow was sharply understated by 61.2%. This indicates the stress case significantly underperforms on profitability and cash generation despite modestly higher revenue. Compared to the naive forecast, the wc_stress scenario improves on operating profit and free cash flow error magnitudes, though all metrics still miss actuals. The large negative free cash flow error suggests the scenario\u2019s assumptions around working capital changes and capex weigh heavily on cash conversion.",
+    "grounding": {
+      "total_claims": 3,
+      "grounded": 3,
+      "ungrounded": [],
+      "grounding_rate": 1.0
+    },
+    "coherence": {
+      "sentences": 4,
+      "findings": [],
+      "finding_count": 0,
+      "clean": true
+    },
+    "provenance": {
+      "provider": "bedrock",
+      "model": "nvidia.nemotron-super-3-120b",
+      "usage": {
+        "input_tokens": 667,
+        "output_tokens": 125
+      }
+    },
+    "generated_at": "2026-08-17T20:58:05.275520+00:00"
+  },
+  "margin_compression": {
+    "text": "Revenue was understated by the forecast, coming in 3.1% below the margin compression scenario's projection, while operating profit was significantly understated at 39.8% below forecast. Free cash flow was also markedly understated, falling 37.4% short of the margin compression scenario's estimate. The naive extrapolation overstated revenue by 5.5% and free cash flow by 14.8%, but understated operating profit by 22.3%. Actual operating profit of 2,056 was substantially higher than both the naive forecast (1,596.5) and the margin compression scenario (1,238.3), indicating stronger core profitability than either projection anticipated. Free cash flow at 1,106.4 exceeded the margin compression scenario's 693.1 but fell short of the naive forecast's 1,270.2, reflecting lower-than-expected cash conversion despite higher earnings.",
     "grounding": {
       "total_claims": 12,
       "grounded": 12,
       "ungrounded": [],
       "grounding_rate": 1.0
     },
-    "generated_at": "2026-08-17T03:30:25.491352+00:00"
-  },
-  "margin_compression": {
-    "text": "Revenue came in at 24811, slightly below the naive forecast of 26176.5 but closer to the margin compression scenario's 25585.2, missing the naive by 5.5 percent. Operating profit underperformed significantly, delivering 2056 against the naive forecast of 1596.5\u2014a beat of 22.3 percent\u2014yet the margin compression scenario projected only 1238.3, missing by 39.8 percent. Free cash flow of 1106.4 exceeded the margin compression forecast of 693.1 by 37.4 percent, though it fell short of the naive projection of 1270.2 by 14.8 percent. The margin compression scenario assumed a sharper deterioration in profitability and cash generation than actually materialized, while the naive extrapolation overestimated both revenue and free cash flow despite underestimating the strength in operating profit.",
-    "grounding": {
-      "total_claims": 14,
-      "grounded": 14,
-      "ungrounded": [],
-      "grounding_rate": 1.0
+    "coherence": {
+      "sentences": 5,
+      "findings": [],
+      "finding_count": 0,
+      "clean": true
     },
-    "generated_at": "2026-08-17T03:30:27.980507+00:00"
+    "provenance": {
+      "provider": "bedrock",
+      "model": "nvidia.nemotron-super-3-120b",
+      "usage": {
+        "input_tokens": 665,
+        "output_tokens": 204
+      }
+    },
+    "generated_at": "2026-08-17T20:58:07.114075+00:00"
   }
 }

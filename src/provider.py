@@ -113,7 +113,17 @@ class BedrockProvider:
     """
 
     name = "bedrock"
-    default_model = "openai.gpt-oss-120b"
+    #: Chosen by measurement, not by name recognition: of the models this
+    #: endpoint serves, this one was the one that returned plain prose at a
+    #: 1.0 grounding rate with no coherence findings. `openai.gpt-oss-120b`
+    #: was the obvious first pick and is unusable here — it ignores the length
+    #: and format constraints, and computes figures the prompt forbids it to
+    #: compute. See docs in the README on how the comparison was run.
+    default_model = "nvidia.nemotron-super-3-120b"
+
+    #: Some models on this endpoint are slow to first token; the SDK default
+    #: is short enough to time out on them before they answer.
+    timeout_s = 90.0
 
     def __init__(self, api_key: str | None = None, base_url: str | None = None):
         from src import config as C
@@ -139,17 +149,23 @@ class BedrockProvider:
                 "LLM_PROVIDER=bedrock requires the `openai` package: pip install openai"
             ) from exc
 
-        self._client = OpenAI(api_key=key, base_url=url)
+        self._client = OpenAI(api_key=key, base_url=url, timeout=self.timeout_s)
 
     def complete(self, *, system: str, user: str, model: str, max_tokens: int) -> Completion:
         import openai
 
+        # Chat completions rather than the responses API: on this endpoint only
+        # the OpenAI-namespace models accept /v1/responses, while every model it
+        # serves accepts /v1/chat/completions. Using the narrower one silently
+        # limits the provider to a handful of the available models.
         try:
-            response = self._client.responses.create(
+            response = self._client.chat.completions.create(
                 model=model,
-                instructions=system,
-                input=user,
-                max_output_tokens=max_tokens,
+                max_tokens=max_tokens,
+                messages=[
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user},
+                ],
             )
         except openai.AuthenticationError as exc:
             # Bedrock issues both short-term API keys (session-derived, valid
@@ -162,12 +178,26 @@ class BedrockProvider:
                 "expired signature, BEDROCK_API_KEY is a short-term key that has since "
                 "lapsed — generate a long-term API key in the Bedrock console and replace it."
             ) from exc
+        text = (response.choices[0].message.content or "").strip() if response.choices else ""
+        if not text:
+            # An empty completion is not a completion. Returning it would send
+            # a paragraph with no numbers downstream, where it scores a
+            # grounding rate of None and looks like a verifier problem rather
+            # than a model that never answered — which is exactly how a
+            # reasoning model that spent its whole budget thinking presents
+            # itself.
+            raise ProviderConfigError(
+                f"Bedrock model {model!r} returned an empty completion. If it is a reasoning "
+                "model, the token budget may have been consumed before it produced an answer; "
+                "raise max_tokens or choose a model that answers directly."
+            )
+
         usage = getattr(response, "usage", None)
         return Completion(
-            text=response.output_text,
+            text=text,
             usage={
-                "input_tokens": getattr(usage, "input_tokens", 0) or 0,
-                "output_tokens": getattr(usage, "output_tokens", 0) or 0,
+                "input_tokens": getattr(usage, "prompt_tokens", 0) or 0,
+                "output_tokens": getattr(usage, "completion_tokens", 0) or 0,
             },
         )
 
