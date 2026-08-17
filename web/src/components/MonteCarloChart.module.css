@@ -1,0 +1,93 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.svg {
+  width: 100%;
+  height: auto;
+}
+
+.bar {
+  fill: var(--color-accent);
+  transition: opacity var(--duration-fast) var(--ease-standard);
+}
+
+.axis {
+  stroke: var(--color-border-strong);
+  stroke-width: 1;
+}
+
+.p50Line {
+  stroke: var(--color-text-primary);
+  stroke-width: 1.5;
+}
+
+.actualLine {
+  stroke: var(--color-negative);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+}
+
+.axisLabels {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+}
+
+.legend {
+  display: flex;
+  gap: var(--space-5);
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.swatch {
+  width: 12px;
+  height: 2px;
+  display: inline-block;
+}
+
+.swatchP50 {
+  background: var(--color-text-primary);
+}
+
+.swatchActual {
+  background: var(--color-negative);
+}
+
+.tooltip {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-primary);
+  background: var(--color-surface-sunk);
+  padding: var(--space-2) var(--space-3);
+  display: inline-block;
+  width: fit-content;
+}
+
+.percentiles {
+  display: flex;
+  gap: var(--space-6);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.percentiles > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.percentiles span.mono {
+  font-size: var(--text-lg);
+}

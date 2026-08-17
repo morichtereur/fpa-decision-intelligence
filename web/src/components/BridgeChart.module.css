@@ -1,0 +1,62 @@
+.chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 8rem 1fr 6rem;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.rowLabel {
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+}
+
+.track {
+  position: relative;
+  height: 1.5rem;
+  background: var(--color-surface-sunk);
+}
+
+.zeroLine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--color-border-strong);
+}
+
+.bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  min-width: 2px;
+}
+
+.barEndpoint {
+  background: var(--color-text-primary);
+}
+
+.barPositive {
+  background: var(--color-positive);
+}
+
+.barNegative {
+  background: var(--color-negative);
+}
+
+.rowValue {
+  font-size: var(--text-sm);
+  text-align: right;
+  color: var(--color-text-primary);
+}
+
+.empty {
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  padding: var(--space-4) 0;
+}

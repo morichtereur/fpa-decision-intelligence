@@ -1,0 +1,12 @@
+# Runtime dependencies for the deployed API only.
+#
+# Deliberately smaller than the repo's requirements.txt: matplotlib belongs
+# to src/report.py and pypdf to src/extract.py, neither of which the API
+# imports. anthropic is included because the deployment does set a key and
+# does serve live commentary; it was left out originally on the assumption
+# that it never would, and that assumption turned into a 500.
+fastapi
+numpy
+python-dotenv
+anthropic
+openai

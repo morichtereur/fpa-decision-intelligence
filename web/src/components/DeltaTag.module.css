@@ -1,0 +1,20 @@
+.tag {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  padding-bottom: 1px;
+  border-bottom: 1.5px solid transparent;
+}
+
+.positive {
+  color: var(--color-positive);
+  border-bottom-color: var(--color-positive);
+}
+
+.negative {
+  color: var(--color-negative);
+  border-bottom-color: var(--color-negative);
+}
+
+.neutral {
+  color: var(--color-text-secondary);
+}

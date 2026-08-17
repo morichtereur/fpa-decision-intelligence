@@ -1,0 +1,141 @@
+.page {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: var(--space-7) var(--space-6) var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-7);
+}
+
+.statementSection {
+  max-width: 52rem;
+}
+
+.eyebrow {
+  margin-bottom: var(--space-3);
+}
+
+.headline {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-style: italic;
+  font-size: var(--text-2xl);
+  line-height: var(--leading-snug);
+  letter-spacing: 0;
+  color: var(--color-text-primary);
+}
+
+.evidence {
+  margin: var(--space-5) 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-4);
+}
+
+.evidence li {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  padding-left: var(--space-4);
+  position: relative;
+}
+
+.evidence li::before {
+  content: "—";
+  position: absolute;
+  left: 0;
+  color: var(--color-border-strong);
+}
+
+.metricsSection {
+  border-top: 1px solid var(--color-border-strong);
+  border-bottom: 1px solid var(--color-border-strong);
+  padding: var(--space-6) 0;
+}
+
+.metricsRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-6);
+}
+
+.metricCol {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-right: var(--space-6);
+  border-right: 1px solid var(--color-border);
+}
+
+.metricCol:last-child {
+  border-right: none;
+}
+
+.metricsNote {
+  margin: var(--space-5) 0 0;
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  max-width: 46rem;
+}
+
+.splitSection {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: var(--space-7);
+}
+
+.sectionHeading {
+  font-size: var(--text-lg);
+  margin-bottom: var(--space-4);
+}
+
+.moreLink {
+  display: inline-block;
+  margin-top: var(--space-4);
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--color-accent);
+}
+
+.moreLink:hover {
+  color: var(--color-accent-hover);
+}
+
+.exposureSection {
+  max-width: 52rem;
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-6);
+}
+
+.exposureText {
+  font-size: var(--text-base);
+  color: var(--color-text-primary);
+  line-height: var(--leading-normal);
+}
+
+@media (max-width: 860px) {
+  .metricsRow {
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+  }
+  .metricCol {
+    border-right: none;
+    padding-right: 0;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: var(--space-4);
+  }
+  .metricCol:last-child {
+    border-bottom: none;
+  }
+  .splitSection {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+}

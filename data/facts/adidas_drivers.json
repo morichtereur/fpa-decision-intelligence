@@ -1,0 +1,126 @@
+{
+  "company": "adidas AG",
+  "currency": "EUR",
+  "unit": "millions",
+  "group": {
+    "2023": {
+      "net_sales": 21427,
+      "gross_profit": 10184,
+      "ebitda": 1358,
+      "operating_profit": 268,
+      "net_income_attributable": -75,
+      "gross_margin_pct": 47.5,
+      "operating_margin_pct": 1.3,
+      "effective_tax_rate_pct": 189.2,
+      "operating_working_capital_pct": 25.7,
+      "capex": 504,
+      "cash_from_operations": 2550,
+      "source": "Adidas_Report_2024.pdf"
+    },
+    "2024": {
+      "net_sales": 23683,
+      "gross_profit": 12026,
+      "ebitda": 2465,
+      "operating_profit": 1337,
+      "net_income_attributable": 764,
+      "gross_margin_pct": 50.8,
+      "operating_margin_pct": 5.6,
+      "effective_tax_rate_pct": 26.5,
+      "operating_working_capital_pct": 19.7,
+      "capex": 540,
+      "cash_from_operations": 2910,
+      "source": "Adidas_Report_2024.pdf"
+    },
+    "2024_restated": {
+      "net_sales": 23683,
+      "gross_profit": 12026,
+      "ebitda": 2465,
+      "operating_profit": 1337,
+      "net_income_attributable": 764,
+      "gross_margin_pct": 50.8,
+      "operating_margin_pct": 5.6,
+      "effective_tax_rate_pct": 26.5,
+      "operating_working_capital_pct": 19.7,
+      "capex": 540,
+      "cash_from_operations": 2910,
+      "source": "Adidas_Report_2025.pdf"
+    },
+    "2025": {
+      "net_sales": 24811,
+      "gross_profit": 12804,
+      "ebitda": 3124,
+      "operating_profit": 2056,
+      "net_income_attributable": 1340,
+      "gross_margin_pct": 51.6,
+      "operating_margin_pct": 8.3,
+      "effective_tax_rate_pct": 24.3,
+      "operating_working_capital_pct": 23.0,
+      "capex": 477,
+      "cash_from_operations": 751,
+      "source": "Adidas_Report_2025.pdf"
+    }
+  },
+  "product_division": {
+    "2023": {
+      "footwear": 12083,
+      "apparel": 7856,
+      "accessories": 1488,
+      "source": "Adidas_Report_2024.pdf"
+    },
+    "2024": {
+      "footwear": 13975,
+      "apparel": 8216,
+      "accessories": 1499,
+      "source": "Adidas_Report_2024.pdf"
+    },
+    "2024_restated": {
+      "footwear": 13977,
+      "apparel": 7937,
+      "accessories": 1779,
+      "source": "Adidas_Report_2025.pdf"
+    },
+    "2025": {
+      "footwear": 14232,
+      "apparel": 8764,
+      "accessories": 1815,
+      "source": "Adidas_Report_2025.pdf"
+    }
+  },
+  "channel": {
+    "2023": {
+      "wholesale_pct_of_sales": 59,
+      "dtc_pct_of_sales": 41,
+      "note": "derived from % share narrative, not a direct euro table",
+      "source": "Adidas_Report_2024.pdf"
+    },
+    "2024": {
+      "wholesale_pct_of_sales": 60,
+      "dtc_pct_of_sales": 40,
+      "wholesale": 14210,
+      "dtc": 9473,
+      "note": "derived from % share narrative, not a direct euro table",
+      "source": "Adidas_Report_2024.pdf"
+    },
+    "2024_restated": {
+      "wholesale": 14172,
+      "dtc": 9490,
+      "source": "Adidas_Report_2025.pdf"
+    },
+    "2025": {
+      "wholesale": 14833,
+      "dtc": 9931,
+      "source": "Adidas_Report_2025.pdf"
+    }
+  },
+  "guidance": {
+    "fy2025_initial": {
+      "cn_sales_growth": "high-single-digit rate",
+      "operating_profit_eur_m_low": 1700,
+      "operating_profit_eur_m_high": 1800,
+      "operating_working_capital_pct_low": 21,
+      "operating_working_capital_pct_high": 22,
+      "capex_eur_m": 600,
+      "source": "Adidas_Report_2024.pdf, Targets – Results – Outlook, 2025 Outlook column"
+    }
+  }
+}

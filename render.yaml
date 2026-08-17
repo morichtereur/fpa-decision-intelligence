@@ -1,0 +1,24 @@
+# Render blueprint for the API half of the cockpit.
+#
+# The frontend deploys separately (Vercel, root directory `web/`) and reaches
+# this service through NEXT_PUBLIC_API_BASE. Two hosts rather than one because
+# each side then runs on its platform's default path — no custom build config
+# on either.
+#
+# ANTHROPIC_API_KEY is deliberately not set here: preset commentary is served
+# from the committed data/commentary.json, and /api/commentary/live returns a
+# clear 503 instead of exposing a billable endpoint to the open internet.
+services:
+  - type: web
+    name: fpa-decision-model-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12"
+      - key: CORS_ORIGINS
+        # Replace with the deployed frontend origin once Vercel assigns it.
+        value: https://fpa-decision-model.vercel.app

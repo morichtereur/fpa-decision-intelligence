@@ -1,0 +1,17 @@
+.env
+__pycache__/
+*.pyc
+.DS_Store
+.venv/
+venv/
+
+# Source annual-report PDFs — large and third-party, not meant to live in
+# git. See data/raw/README.md for where to get them.
+data/raw/*.pdf
+
+# Installers downloaded into the working tree (the AWS CLI package is 57 MB).
+*.pkg
+*.dmg
+
+.pytest_cache/
+node_modules/
