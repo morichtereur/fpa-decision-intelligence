@@ -1,0 +1,77 @@
+# Data mapping for the manufacturing client.
+#
+# Unlike the adidas pack — where the facts come from extracted PDF
+# disclosures and there are no accounts to map — this pack shows the mapping
+# in the shape it would actually take against a ledger: named source accounts
+# rolling up to the model's metrics.
+#
+# The account numbers are synthetic and follow a conventional European chart
+# of accounts. No connector is implemented and none is planned; what is real
+# here is the contract, which is the part that would be re-pointed at a
+# client's ERP or EPM extract.
+#
+#   ERP / EPM / Excel / data platform
+#                 |
+#           client mapping        <- this file
+#                 |
+#        standard FP&A model
+#                 |
+#          decision engine
+
+source: "Synthetic general-ledger extract"
+contract:
+  - "date"
+  - "entity"
+  - "business_unit"
+  - "region"
+  - "account"
+  - "metric"
+  - "actual"
+  - "budget"
+  - "forecast"
+
+metrics:
+  net_sales:
+    source_accounts: ["400000", "401000", "402000"]
+    statement: "Income statement"
+    basis: "reported"
+    note: "Third-party revenue by product line; intercompany excluded."
+  raw_material_cost:
+    source_accounts: ["500000", "500100"]
+    statement: "Income statement"
+    basis: "reported"
+  energy_cost:
+    source_accounts: ["510000"]
+    statement: "Income statement"
+    basis: "reported"
+  receivables:
+    source_accounts: ["140000"]
+    statement: "Balance sheet"
+    basis: "reported"
+    note: "Drives DSO."
+  inventory:
+    source_accounts: ["120000", "121000", "122000"]
+    statement: "Balance sheet"
+    basis: "reported"
+    note: "Raw material, work in progress, finished goods — drives inventory days."
+  payables:
+    source_accounts: ["330000"]
+    statement: "Balance sheet"
+    basis: "reported"
+    note: "Drives DPO."
+  capex:
+    source_accounts: ["070000", "071000"]
+    statement: "Cash flow statement"
+    basis: "reported"
+  operating_working_capital_pct:
+    source_accounts: []
+    statement: "Derived"
+    basis: "derived"
+    note: >-
+      Receivables + inventory - payables, as a percentage of net sales.
+      Equivalently DSO + inventory days - DPO, at 100/365 points per day.
+  free_cash_flow:
+    source_accounts: []
+    statement: "Derived"
+    basis: "derived"
+    note: "NOPAT + D&A - change in working capital - capex, as for every client."

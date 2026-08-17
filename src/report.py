@@ -18,7 +18,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-from src import backtest, config as C, scenario
+from src import backtest, clientpack, config as C, scenario
 
 PALETTE = {
     "surface": "#fcfcfb",
@@ -161,7 +161,7 @@ def build_results_md(bt: dict, mc: dict) -> str:
 def run() -> None:
     facts = json.loads((C.FACTS / "adidas_drivers.json").read_text())
     bt = backtest.run()
-    mc = scenario.run_monte_carlo(facts, n=10_000, seed=0)
+    mc = scenario.run_monte_carlo(clientpack.get_pack("adidas"), n=10_000, seed=0)
 
     plot_fcf_distribution(mc, bt["actual"]["free_cash_flow"], C.DATA / "monte_carlo_fcf.png")
 

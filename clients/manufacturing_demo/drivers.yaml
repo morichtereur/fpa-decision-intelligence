@@ -1,0 +1,261 @@
+# Manufacturing planning drivers — ten, against adidas's five, and
+# structured the way a manufacturer actually reasons rather than the way a
+# branded consumer business does.
+#
+# Two structural differences worth noting, because they are what make this a
+# real test of the architecture rather than five renamed sliders:
+#
+#   1. Revenue growth is DECOMPOSED into volume and price. adidas guides
+#      one blended growth number; a manufacturer manages the two separately
+#      and they carry different margin consequences.
+#   2. Working capital is driven by DSO, inventory days and DPO rather than
+#      set as a single percentage. Each is a delta on the same model
+#      assumption, converted from days into percentage-of-sales at
+#      100/365 = 0.27397 points per day. DPO carries sign -1: paying later
+#      releases cash.
+#
+# Cost drivers are expressed as movement *against plan* (baseline 0.0), which
+# is how a manufacturer discusses input costs — "raw material is running two
+# points above plan", not "raw material is 23.4%".
+
+order:
+  - volume_growth
+  - price_growth
+  - ebitda_margin
+  - raw_material_cost
+  - energy_cost
+  - dso_days
+  - inventory_days
+  - dpo_days
+  - capex_eur_m
+  - tax_rate_pct
+
+# Working capital has no single base driver — three day-based drivers move
+# it. Its plan level is stated here: DSO 68 + inventory 104 - DPO 72 = 100
+# days, which at 100/365 is 27.397% of sales. That sits inside the 27–28%
+# planned range, so the days and the percentage tell the same story.
+assumption_bases:
+  operating_working_capital_pct: {literal: 27.397}
+
+drivers:
+
+  volume_growth:
+    label: "Volume growth"
+    category: "Commercial"
+    unit: "pct"
+    baseline: {literal: 3.0}
+    min: -8.0
+    max: 12.0
+    step: 0.5
+    maps_to: "division_growth"
+    sensitivity_key: "growth"
+    role: "base"
+    scale: 0.01
+    impacts: ["revenue", "operating_profit", "free_cash_flow"]
+    guidance_text: "FY2025 plan: 3.0% volume growth, within a mid-single-digit total"
+    confidence: "Medium"
+    controllability: "Medium"
+    owner: "Chief Commercial Officer"
+    source: "Synthetic — FY2025 plan"
+    description: "Unit volume growth across the three product lines."
+
+  price_growth:
+    label: "Price / mix"
+    category: "Commercial"
+    unit: "pct"
+    baseline: {literal: 2.0}
+    min: -3.0
+    max: 8.0
+    step: 0.25
+    maps_to: "division_growth"
+    sensitivity_key: "growth"
+    role: "add"
+    scale: 0.01
+    impacts: ["revenue", "operating_profit", "free_cash_flow"]
+    guidance_text: "FY2025 plan: 2.0% from price and mix, on top of volume"
+    confidence: "Medium"
+    controllability: "High"
+    owner: "Head of Pricing"
+    source: "Synthetic — FY2025 plan"
+    description: >-
+      Realised price and mix effect. Separated from volume because the two
+      carry different margin consequences and different management levers.
+
+  ebitda_margin:
+    label: "EBITDA margin"
+    category: "Margin"
+    unit: "pct"
+    baseline:
+      solve: ebitda_margin_for_operating_profit
+      args:
+        at_growth_driver: ["volume_growth", "price_growth"]
+        segments: "product_division.2024"
+        baseline_group: "group.2024"
+        target:
+          midpoint:
+            - "guidance.fy2025_initial.operating_profit_eur_m_low"
+            - "guidance.fy2025_initial.operating_profit_eur_m_high"
+    min: 8.0
+    max: 18.0
+    step: 0.1
+    maps_to: "ebitda_margin_pct"
+    sensitivity_key: "operating_profit_target"
+    role: "base"
+    impacts: ["operating_profit", "free_cash_flow"]
+    guidance_text: >-
+      Back-solved from the FY2025 operating-profit plan of €138–148m at 5%
+      total revenue growth
+    confidence: "Medium"
+    controllability: "Medium"
+    owner: "CFO"
+    source: "Synthetic — derived from the FY2025 plan"
+    description: "Plan EBITDA margin before the input-cost drivers below move it."
+
+  raw_material_cost:
+    label: "Raw material cost vs plan"
+    category: "Input Cost"
+    unit: "ppt"
+    baseline: {literal: 0.0}
+    min: -3.0
+    max: 6.0
+    step: 0.25
+    maps_to: "ebitda_margin_pct"
+    sensitivity_key: "operating_profit_target"
+    role: "delta"
+    sign: -1.0
+    impacts: ["operating_profit", "free_cash_flow"]
+    guidance_text: "Plan assumes raw material cost in line with the FY2024 exit rate"
+    confidence: "Low"
+    controllability: "Low"
+    owner: "Head of Procurement"
+    source: "Synthetic — FY2025 plan"
+    description: >-
+      Steel and casting cost as points of revenue against plan. Largely
+      market-set: hedging changes the timing, not the level.
+
+  energy_cost:
+    label: "Energy cost vs plan"
+    category: "Input Cost"
+    unit: "ppt"
+    baseline: {literal: 0.0}
+    min: -2.0
+    max: 5.0
+    step: 0.25
+    maps_to: "ebitda_margin_pct"
+    sensitivity_key: "operating_profit_target"
+    role: "delta"
+    sign: -1.0
+    impacts: ["operating_profit", "free_cash_flow"]
+    guidance_text: "Plan assumes contracted energy pricing holds for the full year"
+    confidence: "Low"
+    controllability: "Low"
+    owner: "Head of Operations"
+    source: "Synthetic — FY2025 plan"
+    description: "Energy as points of revenue against plan. Contracted, then exposed."
+
+  dso_days:
+    label: "DSO"
+    category: "Working Capital"
+    unit: "days"
+    baseline: {fact: "working_capital_days.2024.dso"}
+    min: 50
+    max: 95
+    step: 1
+    maps_to: "operating_working_capital_pct"
+    sensitivity_key: "working_capital_pct"
+    role: "delta"
+    sign: 1.0
+    scale: 0.27397   # 100/365 — one day of sales as a percentage of annual sales
+    impacts: ["free_cash_flow"]
+    guidance_text: "FY2025 plan: 68 days (FY2025 actual came in at 73)"
+    confidence: "Medium"
+    controllability: "High"
+    owner: "Head of Credit Control"
+    source: "Synthetic — FY2025 plan"
+    description: "Days sales outstanding. Collectable through terms and chasing."
+
+  inventory_days:
+    label: "Inventory days"
+    category: "Working Capital"
+    unit: "days"
+    baseline: {fact: "working_capital_days.2024.inventory_days"}
+    min: 80
+    max: 145
+    step: 1
+    maps_to: "operating_working_capital_pct"
+    sensitivity_key: "working_capital_pct"
+    role: "delta"
+    sign: 1.0
+    scale: 0.27397
+    impacts: ["free_cash_flow"]
+    guidance_text: "FY2025 plan: 104 days (FY2025 actual came in at 111)"
+    confidence: "Medium"
+    controllability: "High"
+    owner: "Head of Supply Chain"
+    source: "Synthetic — FY2025 plan"
+    description: >-
+      Raw, work-in-progress and finished goods. The largest single working-
+      capital line and the most directly manageable.
+
+  dpo_days:
+    label: "DPO"
+    category: "Working Capital"
+    unit: "days"
+    baseline: {fact: "working_capital_days.2024.dpo"}
+    min: 45
+    max: 105
+    step: 1
+    maps_to: "operating_working_capital_pct"
+    sensitivity_key: "working_capital_pct"
+    role: "delta"
+    sign: -1.0      # paying later releases cash: higher DPO lowers working capital
+    scale: 0.27397
+    impacts: ["free_cash_flow"]
+    guidance_text: "FY2025 plan: 72 days"
+    confidence: "Medium"
+    controllability: "Medium"
+    owner: "Head of Procurement"
+    source: "Synthetic — FY2025 plan"
+    description: >-
+      Days payable outstanding. Extendable, but against supplier relationships
+      and sometimes against price.
+
+  capex_eur_m:
+    label: "Capex"
+    category: "Investment"
+    unit: "eur_m"
+    baseline: {fact: "guidance.fy2025_initial.capex_eur_m"}
+    min: 70
+    max: 170
+    step: 5
+    maps_to: "capex_eur_m"
+    sensitivity_key: "capex"
+    role: "base"
+    impacts: ["free_cash_flow"]
+    guidance_text: "FY2025 plan: €115m, around 6% of sales"
+    confidence: "Medium"
+    controllability: "High"
+    owner: "CFO"
+    source: "Synthetic — FY2025 plan"
+    description: >-
+      Capital expenditure. Materially heavier than a branded consumer
+      business — capacity, tooling and maintenance rather than stores.
+
+  tax_rate_pct:
+    label: "Effective tax rate"
+    category: "Tax"
+    unit: "pct"
+    baseline: {fact: "group.2024.effective_tax_rate_pct"}
+    min: 20.0
+    max: 35.0
+    step: 0.5
+    maps_to: "effective_tax_rate_pct"
+    sensitivity_key: null
+    role: "base"
+    impacts: ["free_cash_flow"]
+    guidance_text: "Carried forward at the FY2024 rate (28.0%)"
+    confidence: "Low"
+    controllability: "Low"
+    owner: "Head of Tax"
+    source: "Synthetic — FY2024 actual"
+    description: "Effective tax rate, carried forward."

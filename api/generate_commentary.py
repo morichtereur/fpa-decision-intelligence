@@ -28,14 +28,17 @@ import json
 from datetime import datetime, timezone
 
 from api import service
-from src import config as C, drivers
+from src import config as C
 
 
 def run(allow_findings: bool = False) -> int:
     results = {}
     failed: list[str] = []
 
-    for scenario_id in drivers.PRESETS:  # "base" is itself one of the presets
+    # Preset commentary is committed for the default client only — see
+    # service.get_commentary_for on why one client's narrative must not be
+    # served under another's name.
+    for scenario_id in service.pack().presets:  # "base" is itself one of the presets
         values = (
             service.base_driver_values()
             if scenario_id == "base"

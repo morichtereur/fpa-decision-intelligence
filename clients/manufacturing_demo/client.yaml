@@ -1,0 +1,46 @@
+# Manufacturing Demo — a SYNTHETIC second client.
+#
+# Its only purpose is to prove the engine is genuinely client-configurable:
+# switching to it changes the drivers, the KPI structure, the thresholds and
+# the priorities, with no application code involved.
+#
+# The economics are deliberately unlike adidas. A branded consumer business
+# turns on revenue growth and inventory; this one turns on input costs,
+# utilisation and a much heavier working-capital and capex load. If both
+# clients produced similar-looking priorities, the configurability would be
+# cosmetic.
+
+name: "Meridian Industrial Systems"
+short_label: "Manufacturing"
+data_basis: "Synthetic Demo"
+is_synthetic: true
+
+industry: "Industrial manufacturing — drive systems and components"
+currency: "EUR"
+currency_symbol: "€"
+unit: "millions"
+
+fiscal_year: "FY2025"
+baseline_year: "FY2024"
+
+objective: "Free Cash Flow"
+
+facts: "facts.json"
+
+segments_path: "product_division.2024"
+baseline_group_path: "group.2024"
+
+audiences:
+  - "CFO"
+  - "FP&A"
+  - "Business Owner"
+
+disclaimer: >-
+  Synthetic demonstration data. Meridian Industrial Systems is not a real
+  company and no figure here describes any actual business. It exists to
+  show that the decision engine is configurable per client — nothing in it
+  is evidence about anything.
+
+# No backtest. A backtest on invented data would prove nothing, and
+# presenting one would be worse than having none.
+has_backtest: false

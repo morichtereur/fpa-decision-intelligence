@@ -1,0 +1,66 @@
+# Manufacturing scenarios.
+#
+# Deliberately different in kind from adidas's. adidas stresses guidance
+# bands, because guidance is what it published. This client stresses input
+# costs and working-capital discipline, because that is where an industrial
+# manufacturer's cash actually moves.
+
+presets:
+  base:
+    label: "Plan"
+    overrides: {}
+  input_cost_shock:
+    label: "Input Cost Shock"
+    overrides:
+      raw_material_cost: {set: 2.5}
+      energy_cost: {set: 1.5}
+  wc_discipline:
+    label: "Working Capital Discipline"
+    overrides:
+      inventory_days: {set: 92}
+      dso_days: {set: 62}
+  wc_slippage:
+    label: "Working Capital Slippage"
+    overrides:
+      inventory_days: {set: 111}
+      dso_days: {set: 73}
+  volume_downturn:
+    label: "Volume Downturn"
+    overrides:
+      volume_growth: {set: -3.0}
+      inventory_days: {set: 118}
+  price_recovery:
+    label: "Price Recovery"
+    overrides:
+      price_growth: {set: 4.5}
+      raw_material_cost: {set: 1.0}
+
+monte_carlo:
+  n: 10000
+  seed: 0
+  margin_mode: "solve_operating_profit"
+  sampling:
+    growth:
+      distribution: "triangular"
+      low: {literal: 0.02}
+      mode: {literal: 0.05}
+      high: {literal: 0.07}
+    operating_profit_target:
+      distribution: "uniform"
+      low: {fact: "guidance.fy2025_initial.operating_profit_eur_m_low"}
+      high: {fact: "guidance.fy2025_initial.operating_profit_eur_m_high"}
+    working_capital_pct:
+      distribution: "uniform"
+      low: {fact: "guidance.fy2025_initial.operating_working_capital_pct_low"}
+      high: {fact: "guidance.fy2025_initial.operating_working_capital_pct_high"}
+    capex:
+      distribution: "uniform"
+      low: {fact_scaled: ["guidance.fy2025_initial.capex_eur_m", 0.92]}
+      high: {fact_scaled: ["guidance.fy2025_initial.capex_eur_m", 1.12]}
+  fixed:
+    tax_rate_pct: {fact: "group.2024.effective_tax_rate_pct"}
+  caveat: >-
+    Synthetic data. These ranges are constructed to be plausible for an
+    industrial manufacturer -- wider on capex to the upside than adidas's,
+    because overruns on capacity projects are more common than underspends
+    -- but they are invented, not measured, and carry no evidential weight.

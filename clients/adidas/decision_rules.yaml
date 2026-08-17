@@ -1,0 +1,68 @@
+# Management thresholds for adidas.
+#
+# A rule fires when a modelled outcome crosses a level management has said
+# it cares about. Firing is not a verdict — it marks an area requiring
+# review and names the question worth asking, not the answer.
+#
+# `threshold` is in the client's reporting unit (€m) unless the metric is a
+# percentage. `severity` feeds the priority classification but does not
+# override it: a fired rule on a low-materiality driver is still low
+# materiality.
+
+rules:
+
+  - id: "wc_above_guidance"
+    metric: "working_capital_pct"
+    condition: "above"
+    threshold: 22.0
+    severity: "high"
+    label: "Working capital above guided range"
+    management_question: >-
+      Working capital is modelled above the guided 21–22% of sales. What is
+      driving the build — inventory positioning, receivables ageing, or
+      payment terms — and which of those can be reversed inside the
+      half-year?
+    suggested_owner: "Head of Treasury"
+    next_action: "Decompose the build by receivables / inventory / payables before the next forecast round."
+    trigger: "Next monthly working-capital review"
+
+  - id: "fcf_below_base"
+    metric: "free_cash_flow"
+    condition: "variance_below_base"
+    threshold: -150.0
+    severity: "high"
+    label: "Free cash flow materially below plan"
+    management_question: >-
+      The scenario puts free cash flow more than €150m below the base case.
+      Is the shortfall timing or permanent, and does it change the capital
+      allocation plan for the year?
+    suggested_owner: "CFO"
+    next_action: "Confirm whether the driver behind the shortfall is within the current year's control."
+    trigger: "Next quarterly business review"
+
+  - id: "op_below_guidance"
+    metric: "operating_profit"
+    condition: "below"
+    threshold: 1700.0
+    severity: "critical"
+    label: "Operating profit below the guided floor"
+    management_question: >-
+      Modelled operating profit falls below the €1.7bn guided floor. Does
+      the market need to be told, and what is the bridge back to the guided
+      range?
+    suggested_owner: "CFO"
+    next_action: "Assess disclosure obligation and prepare the bridge to guidance."
+    trigger: "Immediate — ahead of the next external communication"
+
+  - id: "margin_erosion"
+    metric: "ebitda_margin"
+    condition: "below"
+    threshold: 10.5
+    severity: "medium"
+    label: "EBITDA margin below the modelled plan range"
+    management_question: >-
+      Margin is modelled below the level implied by guidance. Is this mix,
+      input cost, or promotional intensity?
+    suggested_owner: "CFO"
+    next_action: "Split the margin variance into mix and rate before attributing cause."
+    trigger: "Next monthly performance review"

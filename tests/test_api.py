@@ -5,6 +5,11 @@ and cross-check every scenario endpoint response against a direct
 src.model.forecast() call for the same inputs — "UI is an interface to the
 model, not a second model" enforced at the HTTP boundary, not just in the
 Python service layer (tests/test_drivers.py covers that layer already).
+
+The independent side of the cross-check is tests/reference_adidas_drivers.py,
+the frozen pre-client-pack implementation. Checking the API against the pack
+that now feeds it would be circular; checking it against the implementation
+the pack replaced is not.
 """
 
 import json
@@ -13,7 +18,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from api.main import app
-from src import config as C, drivers, model
+import reference_adidas_drivers as reference
+from src import config as C, model
 
 FACTS_PATH = C.FACTS / "adidas_drivers.json"
 pytestmark = pytest.mark.skipif(not FACTS_PATH.exists(), reason="data/facts/adidas_drivers.json not present")
@@ -28,7 +34,7 @@ def facts():
 
 def _direct_forecast(facts, driver_values):
     division24 = {k: v for k, v in facts["product_division"]["2024"].items() if k != "source"}
-    assumptions = drivers.defaults_to_assumptions(driver_values, division24)
+    assumptions = reference.defaults_to_assumptions(driver_values, division24)
     return model.forecast(facts["group"]["2024"], facts["product_division"]["2024"], assumptions)
 
 

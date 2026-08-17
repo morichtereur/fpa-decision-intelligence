@@ -1,0 +1,64 @@
+# Data mapping — how a source system's accounts would resolve to this
+# model's metrics.
+#
+# For adidas this layer is DOCUMENTARY, not operational: the facts come from
+# extracted PDF disclosures (src/extract.py), not from a ledger, so there are
+# no account numbers to map. It is stated here because the mapping contract
+# is the part that would be re-pointed at a real client's ERP or EPM extract,
+# and leaving it implicit would hide the one step that makes the accelerator
+# deployable.
+#
+# The contract the engine expects from any source:
+#   Date | Entity | Business Unit | Region | Account | Metric | Actual | Budget | Forecast
+#
+# No connector is implemented, and none is planned — a fake SAP integration
+# would be theatre. What is real is the shape.
+
+source: "Extracted from published annual reports (PDF), not a ledger"
+contract:
+  - "date"
+  - "entity"
+  - "business_unit"
+  - "region"
+  - "account"
+  - "metric"
+  - "actual"
+  - "budget"
+  - "forecast"
+
+metrics:
+  net_sales:
+    fact_path: "group.{year}.net_sales"
+    statement: "Income statement"
+    basis: "reported"
+    note: "Disclosed directly as net sales."
+  ebitda:
+    fact_path: "group.{year}.ebitda"
+    statement: "Income statement"
+    basis: "reported"
+  operating_profit:
+    fact_path: "group.{year}.operating_profit"
+    statement: "Income statement"
+    basis: "reported"
+  operating_working_capital_pct:
+    fact_path: "group.{year}.operating_working_capital_pct"
+    statement: "Balance sheet"
+    basis: "reported"
+    note: "Disclosed as a percentage of net sales, not as a euro balance."
+  capex:
+    fact_path: "group.{year}.capex"
+    statement: "Cash flow statement"
+    basis: "reported"
+  free_cash_flow:
+    fact_path: null
+    statement: "Derived"
+    basis: "derived"
+    note: >-
+      adidas does not report free cash flow as a line item. It is constructed
+      here as NOPAT + D&A - change in working capital - capex, the same way
+      for actuals as for forecasts so the comparison stays like-for-like.
+  revenue_by_division:
+    fact_path: "product_division.{year}"
+    statement: "Segment note"
+    basis: "reported"
+    note: "Footwear / Apparel / Accessories. adidas does not disclose a price/volume split."

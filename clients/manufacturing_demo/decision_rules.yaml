@@ -1,0 +1,76 @@
+# Manufacturing decision rules.
+#
+# Different thresholds AND different metrics from adidas: this client's
+# rules fire on inventory days and input costs, which adidas has no drivers
+# for at all. That is the point of the rules living in the pack.
+
+rules:
+
+  - id: "inventory_above_plan"
+    metric: "inventory_days"
+    condition: "above"
+    threshold: 104
+    severity: "high"
+    label: "Inventory days above plan"
+    management_question: >-
+      Inventory is running above the 104-day plan. Is this finished goods
+      awaiting shipment, work-in-progress from a scheduling problem, or raw
+      material bought ahead of a price move — and which of those releases
+      cash this half?
+    suggested_owner: "Head of Supply Chain"
+    next_action: "Split the excess by raw / WIP / finished goods before committing to a recovery number."
+    trigger: "Next monthly operations review"
+
+  - id: "dso_above_plan"
+    metric: "dso_days"
+    condition: "above"
+    threshold: 68
+    severity: "medium"
+    label: "DSO above plan"
+    management_question: >-
+      Receivables are running longer than planned. Is this concentrated in
+      specific accounts, and are the terms contractual or drift?
+    suggested_owner: "Head of Credit Control"
+    next_action: "Age the ledger by customer and separate disputed from simply late."
+    trigger: "Next monthly cash review"
+
+  - id: "input_cost_erosion"
+    metric: "ebitda_margin"
+    condition: "below"
+    threshold: 11.0
+    severity: "high"
+    label: "Margin below the plan floor"
+    management_question: >-
+      Input costs have moved margin below the plan floor. How much is
+      recoverable through price, over what lead time, and what is the gap
+      that has to be absorbed?
+    suggested_owner: "CFO"
+    next_action: "Quantify the recoverable share by contract type before the next pricing round."
+    trigger: "Next pricing committee"
+
+  - id: "fcf_below_plan"
+    metric: "free_cash_flow"
+    condition: "variance_below_base"
+    threshold: -25.0
+    severity: "high"
+    label: "Free cash flow materially below plan"
+    management_question: >-
+      Free cash flow is modelled more than €25m below plan. Does this
+      threaten the capex programme or the covenant position?
+    suggested_owner: "CFO"
+    next_action: "Test the covenant headroom at the modelled level before deferring any capex."
+    trigger: "Next treasury review"
+
+  - id: "capex_overrun"
+    metric: "capex_eur_m"
+    condition: "above"
+    threshold: 125
+    severity: "medium"
+    label: "Capex above the approved envelope"
+    management_question: >-
+      Capex is modelled above the €115m plan and beyond the tolerance. Which
+      projects are driving it, and which are deferrable without losing
+      capacity in the next cycle?
+    suggested_owner: "CFO"
+    next_action: "Rank the capital programme by capacity impact per euro before deferring."
+    trigger: "Next capital committee"

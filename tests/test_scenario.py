@@ -1,8 +1,6 @@
-import json
-
 import pytest
 
-from src import scenario, config as C
+from src import clientpack, scenario, config as C
 
 FACTS_PATH = C.FACTS / "adidas_drivers.json"
 pytestmark = pytest.mark.skipif(not FACTS_PATH.exists(), reason="data/facts/adidas_drivers.json not present")
@@ -10,7 +8,10 @@ pytestmark = pytest.mark.skipif(not FACTS_PATH.exists(), reason="data/facts/adid
 
 @pytest.fixture(scope="module")
 def facts():
-    return json.loads(FACTS_PATH.read_text())
+    """The adidas pack. Named `facts` still because that is what the ranges
+    ultimately come from — they are resolved out of the facts document by the
+    pack rather than hardcoded in src.scenario."""
+    return clientpack.load_pack("adidas")
 
 
 def test_monte_carlo_is_deterministic_given_a_seed(facts):

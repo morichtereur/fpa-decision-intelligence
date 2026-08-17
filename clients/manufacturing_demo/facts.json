@@ -1,0 +1,97 @@
+{
+    "company": "Meridian Industrial Systems (synthetic)",
+    "_disclaimer": "SYNTHETIC DEMONSTRATION DATA. Meridian Industrial Systems is not a real company. Every figure in this file was constructed to be internally consistent and plausible for a mid-size European industrial manufacturer, and none of it is drawn from, or intended to represent, any actual business. It exists to show that the decision engine is client-configurable, and must never be presented as a real client, a benchmark, or evidence about any real company.",
+    "currency": "EUR",
+    "unit": "millions",
+    "group": {
+        "2023": {
+            "net_sales": 1776,
+            "gross_profit": 495,
+            "ebitda": 202,
+            "operating_profit": 113,
+            "net_income_attributable": 81,
+            "gross_margin_pct": 27.9,
+            "operating_margin_pct": 6.4,
+            "effective_tax_rate_pct": 28.5,
+            "operating_working_capital_pct": 29.6,
+            "capex": 104,
+            "cash_from_operations": 145,
+            "source": "Synthetic — FY2023"
+        },
+        "2024": {
+            "net_sales": 1850,
+            "gross_profit": 518,
+            "ebitda": 222,
+            "operating_profit": 129,
+            "net_income_attributable": 93,
+            "gross_margin_pct": 28.0,
+            "operating_margin_pct": 7.0,
+            "effective_tax_rate_pct": 28.0,
+            "operating_working_capital_pct": 28.5,
+            "capex": 111,
+            "cash_from_operations": 168,
+            "source": "Synthetic — FY2024 (baseline year)"
+        },
+        "2025": {
+            "net_sales": 1942,
+            "gross_profit": 553,
+            "ebitda": 243,
+            "operating_profit": 145,
+            "net_income_attributable": 105,
+            "gross_margin_pct": 28.5,
+            "operating_margin_pct": 7.5,
+            "effective_tax_rate_pct": 27.5,
+            "operating_working_capital_pct": 30.2,
+            "capex": 124,
+            "cash_from_operations": 152,
+            "source": "Synthetic — FY2025"
+        }
+    },
+    "product_division": {
+        "2023": {
+            "drive_systems": 858,
+            "industrial_components": 618,
+            "aftermarket_service": 300,
+            "source": "Synthetic — FY2023"
+        },
+        "2024": {
+            "drive_systems": 890,
+            "industrial_components": 640,
+            "aftermarket_service": 320,
+            "source": "Synthetic — FY2024"
+        },
+        "2025": {
+            "drive_systems": 928,
+            "industrial_components": 672,
+            "aftermarket_service": 342,
+            "source": "Synthetic — FY2025"
+        }
+    },
+    "working_capital_days": {
+        "2024": {
+            "dso": 68,
+            "inventory_days": 104,
+            "dpo": 72,
+            "note": "Plan-year targets. DSO + inventory days - DPO = 100 days, which is the 27.4% of sales the plan assumes.",
+            "source": "Synthetic — FY2024"
+        },
+        "2025": {
+            "dso": 73,
+            "inventory_days": 111,
+            "dpo": 74,
+            "note": "Actual outturn — 110 days, against a 100-day plan.",
+            "source": "Synthetic — FY2025"
+        }
+    },
+    "guidance": {
+        "fy2025_initial": {
+            "cn_sales_growth": "mid-single-digit rate",
+            "operating_profit_eur_m_low": 138,
+            "operating_profit_eur_m_high": 148,
+            "operating_working_capital_pct_low": 27.0,
+            "operating_working_capital_pct_high": 28.0,
+            "capex_eur_m": 115,
+            "source": "Synthetic — FY2025 plan as set at the FY2024 close"
+        }
+    }
+}

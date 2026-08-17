@@ -1,4 +1,17 @@
 """
+FROZEN REFERENCE — the pre-configuration adidas driver implementation.
+
+This module is no longer production code. It was src/drivers.py before the
+client-pack refactor, and it is kept, unchanged, as an independent second
+implementation to test clients/adidas/drivers.yaml against. If the pack and
+this file agree, and this file independently agrees with backtest.run(), the
+migration preserved the finance rather than merely preserving the tests.
+
+Do not import it outside tests, and do not "fix" it — its value is that it
+does not change.
+
+Original docstring follows.
+
 Single source of truth for the five assumptions the Scenario Planner
 exposes. Everything the UI shows about a driver — its default, range,
 guidance context, confidence, and (once computed) its financial

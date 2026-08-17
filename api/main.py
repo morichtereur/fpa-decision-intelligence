@@ -6,14 +6,14 @@ Run with `make api` (uvicorn api.main:app --reload --port 8000).
 
 from __future__ import annotations
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from api import service
-from src import config as C, drivers
+from src import clientpack, config as C
 
-app = FastAPI(title="FP&A Decision Model API")
+app = FastAPI(title="FP&A Decision Intelligence API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -26,13 +26,27 @@ app.add_middleware(
 
 class ScenarioRequest(BaseModel):
     driver_values: dict[str, float]
+    client: str | None = None
 
 
-def _validate(driver_values: dict) -> None:
-    """Names and ranges come from drivers.py — the same spec the sliders are
-    built from — so the API and the UI cannot drift apart."""
+def _client(value: str | None) -> str:
+    """Reject an unknown client id rather than falling back to the default.
+    A typo that quietly served adidas numbers under a manufacturing label
+    would be the worst failure this API could produce."""
     try:
-        service.validate_driver_values(driver_values)
+        return clientpack.resolve_client_id(value)
+    except clientpack.ClientPackError as exc:
+        raise HTTPException(404, str(exc)) from exc
+
+
+ClientQuery = Query(default=None, description="Client pack id; defaults to adidas.")
+
+
+def _validate(driver_values: dict, client: str) -> None:
+    """Names and ranges come from the client pack — the same spec the sliders
+    are built from — so the API and the UI cannot drift apart."""
+    try:
+        service.validate_driver_values(driver_values, client)
     except service.DriverValueError as exc:
         raise HTTPException(422, str(exc)) from exc
 
@@ -43,51 +57,75 @@ def health():
 
 
 @app.get("/api/outlook")
-def outlook():
-    return service.get_outlook()
+def outlook(client: str | None = ClientQuery):
+    return service.get_outlook(_client(client))
 
 
 @app.get("/api/drivers")
-def driver_config():
-    return service.get_driver_config()
+def driver_config(client: str | None = ClientQuery):
+    return service.get_driver_config(_client(client))
 
 
 @app.get("/api/presets")
-def presets():
-    return service.get_presets()
+def presets(client: str | None = ClientQuery):
+    return service.get_presets(_client(client))
 
 
 @app.post("/api/scenario")
 def scenario(req: ScenarioRequest):
-    _validate(req.driver_values)
-    return service.compute_scenario(req.driver_values)
+    client = _client(req.client)
+    _validate(req.driver_values, client)
+    return service.compute_scenario(req.driver_values, client)
 
 
 @app.get("/api/backtest")
-def backtest():
-    return service.get_backtest()
+def backtest(client: str | None = ClientQuery):
+    return service.get_backtest(_client(client))
 
 
 @app.get("/api/driver-priority")
-def driver_priority():
-    return service.get_driver_priority()
+def driver_priority(client: str | None = ClientQuery):
+    return service.get_driver_priority(_client(client))
 
 
 @app.get("/api/monte-carlo")
-def monte_carlo():
-    return service.get_monte_carlo()
+def monte_carlo(client: str | None = ClientQuery):
+    return service.get_monte_carlo(_client(client))
 
 
 @app.get("/api/assumptions")
-def assumptions():
-    return service.get_assumption_register()
+def assumptions(client: str | None = ClientQuery):
+    return service.get_assumption_register(_client(client))
+
+
+@app.get("/api/clients")
+def clients():
+    """The client selector's source of truth. Identity only — drivers and
+    numbers come from the per-client routes."""
+    return {"default": clientpack.DEFAULT_CLIENT, "clients": service.list_clients()}
+
+
+@app.get("/api/client")
+def client_summary(client: str | None = ClientQuery):
+    return service.get_client_summary(_client(client))
+
+
+@app.get("/api/decision-rules")
+def decision_rules(client: str | None = ClientQuery):
+    return service.get_decision_rules(_client(client))
+
+
+@app.get("/api/mappings")
+def mappings(client: str | None = ClientQuery):
+    return service.get_mappings(_client(client))
 
 
 @app.get("/api/commentary/{scenario_id}")
-def commentary(scenario_id: str):
-    if scenario_id not in drivers.PRESETS:
+def commentary(scenario_id: str, client: str | None = ClientQuery):
+    resolved = _client(client)
+    if scenario_id not in service.pack(resolved).presets:
         raise HTTPException(404, f"Unknown scenario: {scenario_id}")
-    result = service.get_commentary_for(scenario_id)
+    result = service.get_commentary_for(scenario_id, resolved)
     if result is None:
         raise HTTPException(
             503, "Commentary not yet generated — run `make commentary`."
@@ -102,5 +140,6 @@ def commentary_live(req: ScenarioRequest):
     # Validate before the billable call, not after: this endpoint is public,
     # and an out-of-range value would otherwise spend a request to produce
     # confident nonsense.
-    _validate(req.driver_values)
-    return service.generate_live_commentary(req.driver_values)
+    client = _client(req.client)
+    _validate(req.driver_values, client)
+    return service.generate_live_commentary(req.driver_values, client=client)

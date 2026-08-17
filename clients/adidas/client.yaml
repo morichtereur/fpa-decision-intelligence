@@ -1,0 +1,45 @@
+# adidas AG — the public-data demonstration client.
+#
+# Everything here comes from adidas's own published annual reports. Nothing
+# is invented: where the company does not disclose something, the pack says
+# so rather than filling the gap (see drivers.yaml on EBITDA margin and the
+# tax rate).
+
+name: "adidas AG"
+short_label: "adidas"
+data_basis: "Public Data"
+is_synthetic: false
+
+industry: "Sporting goods — footwear, apparel and accessories"
+currency: "EUR"
+currency_symbol: "€"
+unit: "millions"
+
+fiscal_year: "FY2025"
+baseline_year: "FY2024"
+
+# The management objective this client's decision model is oriented around.
+# Free cash flow, because that is where the backtest found the largest and
+# most correctable forecast error.
+objective: "Free Cash Flow"
+
+facts: "facts.json"
+
+# Where the engine finds the two things model.forecast() needs. Naming these
+# as paths rather than hardcoding them is what lets a client with different
+# segmentation (see manufacturing_demo, which segments by product line)
+# use the same engine.
+segments_path: "product_division.2024"
+baseline_group_path: "group.2024"
+
+audiences:
+  - "CFO"
+  - "FP&A"
+  - "Business Owner"
+
+disclaimer: >-
+  Built entirely from adidas AG's published annual reports. This is a
+  methodology exercise on public disclosures, not investment advice, and not
+  affiliated with or endorsed by adidas AG.
+
+has_backtest: true

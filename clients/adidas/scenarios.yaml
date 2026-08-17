@@ -1,0 +1,70 @@
+# Scenario presets and the uncertainty simulation for adidas.
+#
+# `set` replaces a driver's value; `delta` shifts it from its baseline. The
+# delta form matters for EBITDA margin: its baseline is solved, not typed,
+# so "one point worse than plan" has to be expressed relative to whatever
+# the solve produced rather than as an absolute number that would drift.
+
+presets:
+  base:
+    label: "Base"
+    overrides: {}
+  upside:
+    label: "Upside"
+    overrides:
+      revenue_growth: {set: 9.0}
+      ebitda_margin: {delta: 1.0}
+      working_capital_pct: {set: 21.0}
+  downside:
+    label: "Downside"
+    overrides:
+      revenue_growth: {set: 7.0}
+      ebitda_margin: {delta: -1.0}
+      working_capital_pct: {set: 22.0}
+  wc_stress:
+    label: "Working Capital Stress"
+    overrides:
+      working_capital_pct: {set: 24.0}
+  margin_compression:
+    label: "Margin Compression"
+    overrides:
+      ebitda_margin: {delta: -2.0}
+
+# Monte Carlo. The ranges are adidas's own disclosed guidance bands, not
+# historical volatility — three fiscal years is far too few to estimate
+# volatility honestly, and a standard deviation from two observations would
+# look precise while carrying almost no information.
+#
+# `margin_mode: solve_operating_profit` samples the guided operating-profit
+# range and solves for the EBITDA margin at each draw, so the sampled margin
+# stays consistent with the sampled growth rate. Sampling the two
+# independently would imply D&A figures the model never produced.
+monte_carlo:
+  n: 10000
+  seed: 0
+  margin_mode: "solve_operating_profit"
+  sampling:
+    growth:
+      distribution: "triangular"
+      low: {literal: 0.07}
+      mode: {literal: 0.08}
+      high: {literal: 0.09}
+    operating_profit_target:
+      distribution: "uniform"
+      low: {fact: "guidance.fy2025_initial.operating_profit_eur_m_low"}
+      high: {fact: "guidance.fy2025_initial.operating_profit_eur_m_high"}
+    working_capital_pct:
+      distribution: "uniform"
+      low: {fact: "guidance.fy2025_initial.operating_working_capital_pct_low"}
+      high: {fact: "guidance.fy2025_initial.operating_working_capital_pct_high"}
+    capex:
+      distribution: "uniform"
+      low: {fact_scaled: ["guidance.fy2025_initial.capex_eur_m", 0.95]}
+      high: {fact_scaled: ["guidance.fy2025_initial.capex_eur_m", 1.05]}
+  fixed:
+    tax_rate_pct: {fact: "group.2024.effective_tax_rate_pct"}
+  caveat: >-
+    Ranges are adidas's own disclosed FY2025 guidance bands, not historical
+    volatility -- three fiscal years is too few to estimate volatility
+    honestly. Capex has no disclosed range; a +/-5% band was assumed around
+    the guided point figure.

@@ -1,0 +1,146 @@
+# adidas planning drivers.
+#
+# Baselines are DERIVED, not typed in. Each one resolves from the facts
+# document so that the five defaults, run through model.forecast(),
+# reproduce backtest.driver_based() exactly. That identity is asserted in
+# tests/test_drivers.py — the planner's Base case is the backtested
+# forecast, not a lookalike.
+#
+# `confidence` and `controllability` are declared judgements, not computed.
+# Confidence reflects how firmly adidas disclosed the assumption.
+# Controllability reflects how far management can move it within the
+# planning horizon. Both are stated here so the reasoning is auditable
+# rather than implied by a slider's position.
+
+order:
+  - revenue_growth
+  - ebitda_margin
+  - working_capital_pct
+  - capex_eur_m
+  - tax_rate_pct
+
+drivers:
+
+  revenue_growth:
+    label: "Revenue growth"
+    category: "Commercial"
+    unit: "pct"
+    baseline: {literal: 8.0}   # "high-single-digit rate", midpoint of the conventional 7–9% band
+    min: 0.0
+    max: 15.0
+    step: 0.5
+    maps_to: "division_growth"
+    sensitivity_key: "growth"
+    scale: 0.01                # the model wants a fraction, the UI shows a percentage
+    impacts: ["revenue", "operating_profit", "free_cash_flow"]
+    guidance:
+      low: 7.0
+      high: 9.0
+    guidance_text: 'adidas FY2025 guidance: “high-single-digit rate” (interpreted as 7–9%)'
+    confidence: "Medium"        # a qualitative band, not a number
+    controllability: "Medium"
+    owner: "Chief Commercial Officer"
+    source: "Adidas_Report_2024.pdf, Targets – Results – Outlook"
+    description: >-
+      Group revenue growth, applied uniformly across product divisions —
+      adidas guides company-wide, not by division.
+
+  ebitda_margin:
+    label: "EBITDA margin"
+    category: "Margin"
+    unit: "pct"
+    # Not disclosed. Back-solved from the operating-profit guidance via the
+    # same D&A-scaling relationship model.forecast() uses, evaluated at the
+    # revenue implied by revenue_growth's own baseline.
+    baseline:
+      solve: ebitda_margin_for_operating_profit
+      args:
+        at_growth_driver: revenue_growth
+        segments: "product_division.2024"
+        baseline_group: "group.2024"
+        target:
+          midpoint:
+            - "guidance.fy2025_initial.operating_profit_eur_m_low"
+            - "guidance.fy2025_initial.operating_profit_eur_m_high"
+    min: 8.0
+    max: 16.0
+    step: 0.1
+    maps_to: "ebitda_margin_pct"
+    sensitivity_key: "operating_profit_target"
+    impacts: ["operating_profit", "free_cash_flow"]
+    guidance_text: >-
+      Not disclosed directly — back-solved from operating-profit guidance of
+      €1,700–1,800m at 8% revenue growth
+    confidence: "Medium"        # inherits the operating-profit guidance, one step removed
+    controllability: "Medium"
+    owner: "CFO"
+    source: "Derived, not disclosed — see src/model.py"
+    description: >-
+      EBITDA as a percentage of net sales. adidas guides operating profit,
+      not EBITDA margin; this is the margin consistent with that guidance.
+
+  working_capital_pct:
+    label: "Working capital"
+    category: "Working Capital"
+    unit: "pct"
+    baseline:
+      midpoint:
+        - "guidance.fy2025_initial.operating_working_capital_pct_low"
+        - "guidance.fy2025_initial.operating_working_capital_pct_high"
+    min: 18.0
+    max: 26.0
+    step: 0.5
+    maps_to: "operating_working_capital_pct"
+    sensitivity_key: "working_capital_pct"
+    impacts: ["free_cash_flow"]
+    guidance:
+      low: 21.0
+      high: 22.0
+    guidance_text: >-
+      adidas FY2025 guidance: 21–22% of net sales (actual FY2025: 23.0%)
+    confidence: "High"          # an explicit disclosed range
+    controllability: "High"
+    owner: "Head of Treasury"
+    source: "Adidas_Report_2024.pdf, Targets – Results – Outlook"
+    description: >-
+      Operating working capital as a percentage of net sales. The single
+      largest source of the backtest's free-cash-flow error.
+
+  capex_eur_m:
+    label: "Capex"
+    category: "Investment"
+    unit: "eur_m"
+    baseline: {fact: "guidance.fy2025_initial.capex_eur_m"}
+    min: 400
+    max: 700
+    step: 10
+    maps_to: "capex_eur_m"
+    sensitivity_key: "capex"
+    impacts: ["free_cash_flow"]
+    guidance_text: "adidas FY2025 guidance: around €600m"
+    confidence: "High"
+    controllability: "High"
+    owner: "CFO"
+    source: "Adidas_Report_2024.pdf, Targets – Results – Outlook"
+    description: "Capital expenditure. Guided as a single point, not a range."
+
+  tax_rate_pct:
+    label: "Effective tax rate"
+    category: "Tax"
+    unit: "pct"
+    baseline: {fact: "group.2024.effective_tax_rate_pct"}
+    min: 20.0
+    max: 30.0
+    step: 0.5
+    maps_to: "effective_tax_rate_pct"
+    sensitivity_key: null
+    impacts: ["free_cash_flow"]
+    guidance_text: >-
+      No FY2025 guidance given — carried forward at FY2024's actual rate (26.5%)
+    confidence: "Low"           # no guidance exists; a placeholder assumption
+    controllability: "Low"
+    owner: "Head of Tax"
+    source: "Adidas_Report_2024.pdf, Financial Highlights (FY2024 actual)"
+    description: >-
+      Effective tax rate. Carried forward from FY2024 because adidas gave no
+      FY2025 guidance — the weakest assumption in the model.
