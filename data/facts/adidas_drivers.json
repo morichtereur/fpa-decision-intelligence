@@ -3,6 +3,17 @@
   "currency": "EUR",
   "unit": "millions",
   "group": {
+    "2022": {
+      "net_sales": 22511,
+      "gross_profit": 10644,
+      "ebitda": 1874,
+      "operating_profit": 669,
+      "gross_margin_pct": 47.3,
+      "operating_margin_pct": 3.0,
+      "effective_tax_rate_pct": 34.5,
+      "capex": 695,
+      "source": "Adidas_Report_2023.pdf"
+    },
     "2023": {
       "net_sales": 21427,
       "gross_profit": 10184,
@@ -113,6 +124,16 @@
     }
   },
   "guidance": {
+    "fy2024_initial": {
+      "cn_sales_growth": "mid-single-digit rate",
+      "operating_profit_eur_m_low": 500,
+      "operating_profit_eur_m_high": 500,
+      "operating_profit_guided_as": "point",
+      "operating_working_capital_pct_low": 23,
+      "operating_working_capital_pct_high": 24,
+      "capex_eur_m": 600,
+      "source": "Adidas_Report_2023.pdf, Targets – Results – Outlook, 2024 Outlook column (initial, published February 2024)"
+    },
     "fy2025_initial": {
       "cn_sales_growth": "high-single-digit rate",
       "operating_profit_eur_m_low": 1700,

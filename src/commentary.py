@@ -60,6 +60,14 @@ def _flatten_outputs(backtest_result: dict) -> dict:
     """
     flat = {}
     for series, metrics in backtest_result.items():
+        # A result may carry metadata alongside its series — which vintage it
+        # is, when the guidance was published. Those are not outputs and must
+        # not enter a table the model is invited to quote from.
+        # claims.index_outputs() has always guarded this; this layer had not,
+        # and the two must agree or the verifier checks a different table than
+        # the one the model was shown.
+        if not isinstance(metrics, dict):
+            continue
         for key, value in metrics.items():
             # bool is an int subclass, so a flag would otherwise enter the
             # table as 1 — a number the model is then free to cite, and

@@ -314,3 +314,12 @@ export interface MetricMapping {
   basis: "reported" | "derived";
   note?: string;
 }
+
+export interface BacktestVintage extends BacktestResult {
+  vintage: string;
+  label: string;
+  baseline_year: string;
+  forecast_year: string;
+  guidance_published: string;
+  guidance_phrase: string;
+}

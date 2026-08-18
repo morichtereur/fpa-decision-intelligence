@@ -209,7 +209,45 @@ def extract_guidance_from_2024_report(text: str) -> dict:
     }
 
 
+def extract_guidance_from_2023_report(text: str) -> dict:
+    """FY2024 guidance as stated in the FY2023 report's "2024 Outlook" column.
+
+    This is the INITIAL guidance, published February 2024. It matters that it
+    is the initial one: the FY2024 report's own targets column is labelled "As
+    published on October 15, 2024" — guidance revised three quarters into the
+    year it describes. Backtesting against a revised figure would be testing
+    the model on information it could not have had.
+
+    Two shape differences from the FY2025 guidance, both real:
+    operating profit is guided as a point ("around EUR 500 million") rather
+    than a range, and working capital is guided at 23-24% rather than 21-22%.
+    """
+    flat = _flatten(text)
+    required = [
+        "to increase at a mid-single-digit rate",
+        "operating profit of around € 500 million",
+        "to reach a level of between 23% and 24%",
+        "to reach a level of around € 600 million",
+    ]
+    for phrase in required:
+        if phrase not in flat:
+            raise ValueError(f"Expected FY2024 guidance phrase not found: {phrase!r}")
+    return {
+        "cn_sales_growth": "mid-single-digit rate",
+        # Guided as a single figure, not a band. Low and high are equal so the
+        # same midpoint resolver works for both vintages without a special case.
+        "operating_profit_eur_m_low": 500,
+        "operating_profit_eur_m_high": 500,
+        "operating_profit_guided_as": "point",
+        "operating_working_capital_pct_low": 23,
+        "operating_working_capital_pct_high": 24,
+        "capex_eur_m": 600,
+        "source": "Adidas_Report_2023.pdf, Targets – Results – Outlook, 2024 Outlook column (initial, published February 2024)",
+    }
+
+
 def run() -> dict:
+    text23 = _pdf_text(C.RAW / "Adidas_Report_2023.pdf")
     text24 = _pdf_text(C.RAW / "Adidas_Report_2024.pdf")
     text25 = _pdf_text(C.RAW / "Adidas_Report_2025.pdf")
 
@@ -223,8 +261,23 @@ def run() -> dict:
         "guidance": {},
     }
 
+    # The FY2023 report carries FY2022 as its comparative column. Without it
+    # the FY2024 vintage has no prior year to extrapolate a naive run-rate
+    # from, and the naive baseline is the thing the driver-based forecast is
+    # being compared against.
+    fh_2023 = extract_financial_highlights(text23, 2023, 2022)
     fh_2024 = extract_financial_highlights(text24, 2024, 2023)
     fh_2025 = extract_financial_highlights(text25, 2025, 2024)
+    # FY2022 comes from the FY2023 report and carries only what its Financial
+    # Highlights table holds — enough for the naive run-rate, which needs net
+    # sales and nothing else.
+    #
+    # FY2023 stays sourced from the FY2024 report. That table carries working
+    # capital % and cash flow, which the FY2023 report's own highlights table
+    # does not, and the model needs them for a baseline year. The two reports
+    # agree on every FY2023 figure they both state, so nothing is lost by
+    # preferring the more complete one.
+    facts["group"]["2022"] = {**fh_2023["2022"], "source": "Adidas_Report_2023.pdf"}
     facts["group"]["2023"] = {**fh_2024["2023"], "source": "Adidas_Report_2024.pdf"}
     facts["group"]["2024"] = {**fh_2024["2024"], "source": "Adidas_Report_2024.pdf"}
     facts["group"]["2024_restated"] = {**fh_2025["2024"], "source": "Adidas_Report_2025.pdf"}
@@ -258,6 +311,7 @@ def run() -> dict:
     facts["channel"]["2024_restated"] = {**ch_2025["2024"], "source": "Adidas_Report_2025.pdf"}
     facts["channel"]["2025"] = {**ch_2025["2025"], "source": "Adidas_Report_2025.pdf"}
 
+    facts["guidance"]["fy2024_initial"] = extract_guidance_from_2023_report(text23)
     facts["guidance"]["fy2025_initial"] = extract_guidance_from_2024_report(text24)
 
     C.FACTS.mkdir(parents=True, exist_ok=True)

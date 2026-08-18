@@ -6,6 +6,7 @@ import BacktestBars from "@/components/BacktestBars";
 import VarianceBridge from "@/components/VarianceBridge";
 import MonteCarloChart from "@/components/MonteCarloChart";
 import Disclaimers from "@/components/Disclaimers";
+import VintageScorecard from "@/components/VintageScorecard";
 import styles from "./evidence.module.css";
 
 export const dynamic = "force-dynamic";
@@ -26,11 +27,12 @@ export default async function ForecastRiskPage({
   searchParams: Promise<SearchParams>;
 }) {
   const client = clientFrom(await searchParams);
-  const [backtest, monteCarlo, summary, variance] = await Promise.all([
+  const [backtest, monteCarlo, summary, variance, vintages] = await Promise.all([
     api.backtest(client),
     api.monteCarlo(client),
     api.client(client),
     api.variance("free_cash_flow", client),
+    api.backtestVintages(client),
   ]);
 
   return (
@@ -47,9 +49,12 @@ export default async function ForecastRiskPage({
         {backtest ? (
           <>
             <p className={styles.sectionIntro}>
-              The driver-based forecast produced a smaller error than a naive extrapolation on
-              every metric — but both undershot what {summary.short_label} actually delivered.
-              Beating a naive baseline once is not the same claim as being reliable.
+              Across the two vintages this data supports, the driver-based forecast produced a
+              smaller error than a naive extrapolation on five of six metric-year pairs — and
+              lost on FY2024 free cash flow, where {summary.short_label} released working
+              capital far faster than its own guidance implied. Both methods undershot in both
+              years. Beating a naive baseline five times out of six is not the same claim as
+              being reliable.
             </p>
             <div className={styles.backtestLayout}>
               <BacktestBars backtest={backtest} />
@@ -111,31 +116,17 @@ export default async function ForecastRiskPage({
         </section>
       )}
 
-      {backtest && (
+      {vintages && vintages.length > 1 && (
         <section className={styles.section}>
-          <h2 className={styles.sectionHeading}>Forecast vintage</h2>
-          <div className={styles.vintageEmpty}>
-            <p>
-              <strong>One backtest point, not a rolling history.</strong> A vintage timeline
-              (plan → quarterly updates → actual) needs forecast snapshots taken through the
-              year — this project has only the FY2024 report&rsquo;s initial FY2025 guidance and
-              the FY2025 actuals, an annual cross-section rather than a rolling forecast. Showing
-              a fabricated multi-point timeline here would overstate what this data supports.
-            </p>
-            <div className={styles.vintageTimeline}>
-              <div className={styles.vintagePoint}>
-                <span className={styles.vintageDot} />
-                <span className={styles.vintageLabel}>FY2024 report</span>
-                <span className={styles.vintageSub}>Guidance set</span>
-              </div>
-              <div className={styles.vintageLine} />
-              <div className={styles.vintagePoint}>
-                <span className={styles.vintageDot} />
-                <span className={styles.vintageLabel}>FY2025 actual</span>
-                <span className={styles.vintageSub}>Checked against</span>
-              </div>
-            </div>
-          </div>
+          <h2 className={styles.sectionHeading}>Does the error repeat?</h2>
+          <p className={styles.sectionIntro}>
+            Two vintages, each built from the initial guidance in the prior year&rsquo;s report —
+            never a figure revised part-way through the year it describes. One point shows the
+            size of a miss; two show whether it recurs. Both years undershoot operating profit,
+            because {summary.short_label} guided conservatively in both and beat its own
+            guidance in both. That is a property of the input, not of the arithmetic.
+          </p>
+          <VintageScorecard vintages={vintages} />
         </section>
       )}
 

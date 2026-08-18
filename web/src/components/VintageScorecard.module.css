@@ -1,0 +1,70 @@
+/* Two vintages, six comparisons. Set as a scorecard rather than a chart: with
+   six numbers the question is "which method was closer, and where did that
+   change", and a table answers it faster than any plot of it would. */
+
+.wrap { overflow-x: auto; }
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+  min-width: 34rem;
+}
+
+.table th {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  text-align: right;
+  padding: 0 var(--space-3) var(--space-2);
+  border-bottom: 1px solid var(--color-border-strong);
+  white-space: nowrap;
+}
+
+.table th:first-child { text-align: left; padding-left: 0; }
+.table th:last-child { padding-right: 0; }
+
+.table td {
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.table td:first-child { text-align: left; padding-left: 0; }
+.table td:last-child { padding-right: 0; }
+
+.metric { font-family: var(--font-display); font-weight: 600; }
+
+.vintageHead { font-weight: 600; color: var(--color-text-primary); }
+.published {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: var(--text-xs);
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--color-text-secondary);
+}
+
+/* The winner is marked by weight, not colour: neither method is "good" here —
+   both undershot in both years — so a green cell would congratulate a forecast
+   that was wrong by 63%. */
+.won { font-weight: 600; color: var(--color-text-primary); }
+.lost { color: var(--color-text-secondary); }
+
+.loserFlag {
+  border-left: 2px solid var(--color-negative);
+  padding-left: var(--space-3);
+}
+
+.note {
+  margin: var(--space-5) 0 0;
+  padding-left: var(--space-4);
+  border-left: 2px solid var(--color-negative);
+  font-size: var(--text-sm);
+  max-width: 64ch;
+}

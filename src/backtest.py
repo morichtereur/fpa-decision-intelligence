@@ -40,6 +40,38 @@ from src import config as C
 from src import model
 
 
+#: A backtest vintage: build the model as of `baseline`, using only that
+#: report's own figures and the guidance it published for the year ahead, then
+#: compare against what `actual` turned out to be.
+#:
+#: `growth` is the interpretation of a qualitative guidance phrase, stated per
+#: vintage rather than buried in a function. adidas guides currency-neutral
+#: sales in words — "mid-single-digit rate", "high-single-digit rate" — and the
+#: midpoint of the conventional band is the reading used here.
+VINTAGES = {
+    "fy2024": {
+        "label": "FY2023 → FY2024",
+        "baseline": "2023",
+        "actual": "2024",
+        "guidance": "fy2024_initial",
+        "growth": 0.05,          # "mid-single-digit rate"
+        "growth_phrase": "mid-single-digit rate",
+        "published": "February 2024",
+    },
+    "fy2025": {
+        "label": "FY2024 → FY2025",
+        "baseline": "2024",
+        "actual": "2025",
+        "guidance": "fy2025_initial",
+        "growth": 0.08,          # "high-single-digit rate"
+        "growth_phrase": "high-single-digit rate",
+        "published": "March 2025",
+    },
+}
+
+DEFAULT_VINTAGE = "fy2025"
+
+
 def _margin_for_operating_profit(target_operating_profit: float, revenue: float, baseline_da: float, baseline_revenue: float) -> float:
     """Solve for the EBITDA margin (%) that makes
     forecast_operating_profit = revenue*margin - baseline_da*(revenue/baseline_revenue)
@@ -56,13 +88,21 @@ def _derive_fcf(operating_profit: float, tax_rate_pct: float, ebitda: float, wor
     return nopat + da - change_in_wc - capex
 
 
-def naive_baseline(facts: dict) -> dict:
+def naive_baseline(facts: dict, vintage: str = DEFAULT_VINTAGE) -> dict:
     """Extrapolate FY2025 from the FY2024 run-rate only: same nominal
     revenue growth rate as FY2023->FY2024, margins/working-capital%/capex
     held flat at FY2024's actual level. No judgement beyond "more of the
     same"."""
-    g24 = facts["group"]["2024"]
-    g23 = facts["group"]["2023"]
+    spec = VINTAGES[vintage]
+    baseline_year = int(spec["baseline"])
+    g24 = facts["group"][spec["baseline"]]
+    prior = facts["group"].get(str(baseline_year - 1))
+    if prior is None:
+        raise ValueError(
+            f"Vintage {vintage!r} needs FY{baseline_year - 1} to extrapolate a run-rate from, "
+            f"and the facts document does not carry it."
+        )
+    g23 = prior
     growth_rate = g24["net_sales"] / g23["net_sales"] - 1
 
     revenue = g24["net_sales"] * (1 + growth_rate)
@@ -93,15 +133,16 @@ def naive_baseline(facts: dict) -> dict:
     }
 
 
-def driver_based(facts: dict) -> dict:
-    """Build the model as of FY2024 using the FY2024 report's own figures
-    (not the FY2025 report's later restatement) plus adidas's stated
-    FY2025 guidance."""
-    g24 = facts["group"]["2024"]
-    division24 = facts["product_division"]["2024"]
-    guidance = facts["guidance"]["fy2025_initial"]
+def driver_based(facts: dict, vintage: str = DEFAULT_VINTAGE) -> dict:
+    """Build the model as of the vintage's baseline year, using that report's
+    own figures (not a later restatement) plus adidas's stated guidance for
+    the year ahead."""
+    spec = VINTAGES[vintage]
+    g24 = facts["group"][spec["baseline"]]
+    division24 = facts["product_division"][spec["baseline"]]
+    guidance = facts["guidance"][spec["guidance"]]
 
-    growth = 0.08  # "high-single-digit rate", interpreted — see module docstring
+    growth = spec["growth"]  # a guidance phrase, interpreted — see VINTAGES
     division_baseline = {k: v for k, v in division24.items() if k != "source"}
     revenue = sum(v * (1 + growth) for v in division_baseline.values())
 
@@ -120,20 +161,25 @@ def driver_based(facts: dict) -> dict:
         "capex_eur_m": guidance["capex_eur_m"],
     }
 
-    result = model.forecast(g24, facts["product_division"]["2024"], assumptions)
+    result = model.forecast(g24, division24, assumptions)
     result["method"] = "driver-based (guidance-informed)"
+    result["vintage"] = vintage
     return result
 
 
-def run() -> dict:
+def run(vintage: str = DEFAULT_VINTAGE) -> dict:
+    if vintage not in VINTAGES:
+        raise ValueError(f"Unknown vintage {vintage!r}. Available: {sorted(VINTAGES)}")
+    spec = VINTAGES[vintage]
     facts = json.loads((C.FACTS / "adidas_drivers.json").read_text())
 
-    naive = naive_baseline(facts)
-    driven = driver_based(facts)
+    naive = naive_baseline(facts, vintage)
+    driven = driver_based(facts, vintage)
 
-    actual = facts["group"]["2025"]
+    actual = facts["group"][spec["actual"]]
+    baseline = facts["group"][spec["baseline"]]
     actual_wc = actual["net_sales"] * actual["operating_working_capital_pct"] / 100
-    prior_wc = facts["group"]["2024"]["net_sales"] * facts["group"]["2024"]["operating_working_capital_pct"] / 100
+    prior_wc = baseline["net_sales"] * baseline["operating_working_capital_pct"] / 100
     actual_fcf = _derive_fcf(
         actual["operating_profit"], actual["effective_tax_rate_pct"], actual["ebitda"],
         actual_wc, prior_wc, actual["capex"],
@@ -143,6 +189,12 @@ def run() -> dict:
         return (forecast_value - actual_value) / actual_value * 100
 
     comparison = {
+        "vintage": vintage,
+        "label": spec["label"],
+        "baseline_year": f"FY{spec['baseline']}",
+        "forecast_year": f"FY{spec['actual']}",
+        "guidance_published": spec["published"],
+        "guidance_phrase": spec["growth_phrase"],
         "actual": {
             "revenue": actual["net_sales"],
             "operating_profit": actual["operating_profit"],
@@ -166,6 +218,17 @@ def run() -> dict:
         },
     }
     return comparison
+
+
+def run_all() -> list[dict]:
+    """Every vintage, oldest first.
+
+    Two points is still a thin sample, and the README says so. It is enough to
+    show one thing a single point cannot: whether a miss repeats. It does —
+    both vintages undershoot, because both are anchored on guidance adidas set
+    conservatively and then beat.
+    """
+    return [run(v) for v in VINTAGES]
 
 
 if __name__ == "__main__":

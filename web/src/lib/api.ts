@@ -2,6 +2,7 @@ import type {
   ClientSummary,
   AssumptionRow,
   BacktestResult,
+  BacktestVintage,
   CommentaryResponse,
   DriverConfig,
   DriverPriorityRow,
@@ -58,6 +59,8 @@ export const api = {
   drivers: (c?: ClientId) => request<DriverConfig>(scoped("/api/drivers", c)),
   presets: (c?: ClientId) => request<PresetsResponse>(scoped("/api/presets", c)),
   backtest: (c?: ClientId) => request<BacktestResult | null>(scoped("/api/backtest", c)),
+  backtestVintages: (c?: ClientId) =>
+    request<BacktestVintage[] | null>(scoped("/api/backtest-vintages", c)),
   driverPriority: (c?: ClientId) => request<DriverPriorityRow[]>(scoped("/api/driver-priority", c)),
   monteCarlo: (c?: ClientId) => request<MonteCarloResponse>(scoped("/api/monte-carlo", c)),
   assumptions: (c?: ClientId) => request<AssumptionRow[]>(scoped("/api/assumptions", c)),

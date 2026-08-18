@@ -128,6 +128,13 @@ def decision_brief_for_scenario(req: ScenarioRequest):
     return service.get_decision_brief(req.driver_values, client)
 
 
+@app.get("/api/backtest-vintages")
+def backtest_vintages(client: str | None = ClientQuery):
+    """Every vintage, so the interface can show whether an error repeats
+    rather than only how large the latest one was."""
+    return service.get_backtest_vintages(_client(client))
+
+
 @app.get("/api/variance/{metric}")
 def variance_bridge(metric: str = "free_cash_flow", client: str | None = ClientQuery):
     """Forecast-to-actual variance, decomposed across the client's drivers.

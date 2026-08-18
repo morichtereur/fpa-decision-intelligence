@@ -77,6 +77,15 @@ def get_backtest(client: str | None = None) -> dict | None:
 
 
 @lru_cache(maxsize=8)
+def get_backtest_vintages(client: str | None = None) -> list[dict] | None:
+    """Every backtest vintage, oldest first, or None where a client has no
+    outturn to test against."""
+    if not pack(client).has_backtest:
+        return None
+    return backtest.run_all()
+
+
+@lru_cache(maxsize=8)
 def get_monte_carlo(client: str | None = None) -> dict:
     mc = scenario.run_monte_carlo(pack(client))
     draws = mc.pop("fcf_draws")
@@ -166,9 +175,33 @@ def build_executive_statement(client: str | None = None) -> dict:
         f"{p.currency_symbol}{bt['actual']['operating_profit']:,.0f}m actual).",
         f"{top['label']} shows {top['sensitivity'].lower()} sensitivity to free cash flow "
         f"({top['confidence'].lower()} confidence assumption).",
-        "Naive extrapolation would have missed by more on every metric — see Evidence.",
+        _naive_comparison(bt),
     ]
     return {"headline": headline, "evidence": evidence}
+
+
+def _naive_comparison(bt: dict) -> str:
+    """How the driver-based forecast fared against the naive one, counted
+    rather than claimed.
+
+    This line used to assert that the driver-based forecast beat naive "on
+    every metric". That was true of the FY2025 vintage and false of FY2024,
+    where a large unforecast working-capital release left the naive
+    extrapolation closer on free cash flow. Counting means the sentence cannot
+    outlive the result it describes.
+    """
+    metrics = ("revenue", "operating_profit", "free_cash_flow")
+    beaten = [
+        m for m in metrics
+        if abs(bt["driver_based"][f"{m}_error_pct"]) < abs(bt["naive"][f"{m}_error_pct"])
+    ]
+    if len(beaten) == len(metrics):
+        return "Naive extrapolation missed by more on all three metrics — see Evidence."
+    lost = [m.replace("_", " ") for m in metrics if m not in beaten]
+    return (
+        f"Naive extrapolation missed by more on {len(beaten)} of {len(metrics)} metrics, "
+        f"but landed closer on {' and '.join(lost)} — see Evidence."
+    )
 
 
 def get_outlook(client: str | None = None) -> dict:

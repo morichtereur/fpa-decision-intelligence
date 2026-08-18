@@ -51,8 +51,35 @@ assumption in the model; adidas does not report free cash flow at all, so it
 is constructed the same way for actuals and forecasts and that construction is
 stated.
 
-The forecast is backtested against what actually happened — one honest point,
-not a track record, and the README says so where the number appears.
+The forecast is backtested against what actually happened, on **two vintages**:
+FY2023→FY2024 and FY2024→FY2025. Each uses the *initial* guidance from the
+prior year's report, never a figure revised part-way through the year it
+describes — the FY2024 report's own targets column is labelled "As published on
+October 15, 2024", which would be testing the model on information it could not
+have had.
+
+### What two points showed that one could not
+
+| | FY2023 → FY2024 | FY2024 → FY2025 |
+|---|---:|---:|
+| Revenue | **−5.0%** vs naive −13.9% | **+3.1%** vs naive +5.5% |
+| Operating profit | **−62.6%** vs naive −84.8% | **−14.9%** vs naive −22.3% |
+| Free cash flow | −86.8% vs naive **−72.2%** | **−3.4%** vs naive +14.8% |
+
+The driver-based forecast wins **five of six** metric-year pairs — and loses
+one. In FY2024 adidas released working capital from 25.7% to 19.7% of sales
+while guiding 23–24%; the guidance-anchored forecast inherited that error, and
+the naive extrapolation happened to land closer on cash.
+
+This project previously claimed the driver-based forecast beat naive *on every
+metric*. That was true of one vintage and false across two. The claim is
+corrected everywhere it appeared, and `tests/test_vintages.py` asserts the
+5-of-6 scorecard so it cannot quietly reappear.
+
+The more useful finding is what repeats: **both vintages undershoot operating
+profit**, because adidas guided conservatively in both years and beat its own
+guidance in both. That is a property of the input, not of the arithmetic — and
+it is exactly the kind of systematic bias a single data point cannot reveal.
 
 ## Configurability
 
@@ -438,9 +465,13 @@ switched off, which is the point.
 
 Read these before drawing conclusions from anything above.
 
-- **One backtest point.** Three fiscal years supports exactly one honest
-  forecast-versus-actual comparison. Beating a naive baseline once is not a
-  track record.
+- **Two backtest points.** Four fiscal years supports two honest
+  forecast-versus-actual comparisons, and the method loses one of the six
+  metric-year pairs. Two points can show an error repeating; they cannot
+  establish a trend, and this is not a track record.
+- **No intra-year vintages.** Annual reports carry one guidance figure per
+  year, so a plan → quarterly-update → actual timeline is not constructible
+  from this data and is not faked.
 - **Exposures are one-at-a-time.** Each driver is swung with the others held
   at plan, so interaction effects are not captured. The FCF bridge carries the
   same limitation and says so.
