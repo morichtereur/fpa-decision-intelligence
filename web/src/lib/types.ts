@@ -194,8 +194,14 @@ export interface MethodologyAxis {
 export interface Methodology {
   objective: string;
   objective_metric: string;
-  thresholds: { high: number; medium: number };
+  objective_at_plan: number;
+  thresholds: { high: number; medium: number; rationale: string };
+  threshold_share: { high: number; medium: number };
   threshold_text: string;
+  /** Why these bands and not others. Required of every pack: there is no ratio
+   *  that reproduces both clients' thresholds, so the number is a management
+   *  tolerance and has to carry its reasoning. */
+  threshold_rationale: string;
   axes: MethodologyAxis[];
   rules: { when: string; then: Priority; why: string }[];
   limitations: string[];

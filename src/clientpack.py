@@ -422,16 +422,27 @@ def _read_yaml(path: Path) -> dict:
 
 
 def _materiality_thresholds(client_id: str, client: dict) -> dict:
-    """Euro bands for High / Medium exposure. Required, and per client:
-    materiality is relative to the size of the business, and a shared default
-    would quietly rank a EUR 1.9bn manufacturer against a EUR 24bn brand's
-    yardstick."""
+    """Euro bands for High / Medium exposure, plus the reasoning behind them.
+
+    Required, and per client: materiality is relative to the size of the
+    business, and a shared default would quietly rank a EUR 1.9bn manufacturer
+    against a EUR 24bn brand's yardstick.
+
+    A `rationale` is required alongside the numbers, and it is not decoration.
+    There is no ratio that reproduces both clients' thresholds — a share of
+    free cash flow, of revenue, or of EBITDA each gives a sensible band for one
+    and a useless one for the other, because a manufacturer's working capital
+    swings far harder against its own cash flow than a brand's does. Materiality
+    is a management tolerance, not a formula. Deriving it mechanically would
+    have looked more rigorous and been less true, so the pack states the number
+    and says why, and the UI shows both.
+    """
     raw = client.get("materiality_thresholds") or {}
-    missing = {"high", "medium"} - set(raw)
+    missing = {"high", "medium", "rationale"} - set(raw)
     if missing:
         raise ClientPackError(
             f"Client {client_id!r} must declare materiality_thresholds with "
-            f"`high` and `medium` (missing: {sorted(missing)})"
+            f"`high`, `medium` and `rationale` (missing: {sorted(missing)})"
         )
     high, medium = float(raw["high"]), float(raw["medium"])
     if not high > medium > 0:
@@ -439,7 +450,13 @@ def _materiality_thresholds(client_id: str, client: dict) -> dict:
             f"Client {client_id!r} materiality_thresholds must satisfy high > medium > 0, "
             f"got high={high}, medium={medium}"
         )
-    return {"high": high, "medium": medium}
+    rationale = str(raw["rationale"]).strip()
+    if not rationale:
+        raise ClientPackError(
+            f"Client {client_id!r} declares empty materiality_thresholds.rationale — "
+            f"a threshold nobody can justify is a threshold nobody should trust"
+        )
+    return {"high": high, "medium": medium, "rationale": rationale}
 
 
 def _validate_driver(driver_id: str, spec: DriverSpec) -> None:

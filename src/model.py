@@ -1,8 +1,8 @@
 """
 Stage 2: the driver-based forecast.
 
-Takes a baseline year's facts (product-division and channel revenue split,
-margins, working capital %, capex, tax rate) plus a set of explicit,
+Takes a baseline year's facts (one revenue segmentation, margins, working
+capital %, capex, tax rate) plus a set of explicit,
 visible growth/margin assumptions for the forecast period, and traces them
 through to EBITDA and free cash flow — the same separation of reported
 facts vs. planning assumptions vs. calculated outputs used throughout this
@@ -47,7 +47,12 @@ def _revenue_by_division(baseline_division: dict, growth_assumptions: dict) -> d
 def forecast(baseline_group: dict, baseline_division: dict, assumptions: dict) -> dict:
     """
     baseline_group: one year's entry from facts["group"], e.g. facts["group"]["2024"]
-    baseline_division: one year's entry from facts["product_division"], excluding "source"
+    baseline_division: one year's entry from the client's segmentation, excluding
+        "source". Which segmentation that is comes from the pack's
+        `segments_path` — product division for adidas, product line for the
+        manufacturer. The model runs one segmentation at a time; adidas's
+        channel split is extracted and available as an alternative axis, but
+        modelling both simultaneously is not supported and is not pretended.
     assumptions: {
         "division_growth": {"footwear": 0.08, "apparel": 0.08, "accessories": 0.08},
         "ebitda_margin_pct": 13.2,

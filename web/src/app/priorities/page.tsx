@@ -51,7 +51,10 @@ export default async function PrioritiesPage({
           ))}
         </div>
 
-        <p className={styles.thresholdNote}>{methodology.threshold_text}</p>
+        <p className={styles.thresholdNote}>
+          {methodology.threshold_text}
+          <span className={styles.thresholdWhy}>{methodology.threshold_rationale}</span>
+        </p>
 
         <table className={styles.ruleTable}>
           <caption className="visually-hidden">

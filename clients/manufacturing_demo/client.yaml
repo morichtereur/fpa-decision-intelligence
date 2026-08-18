@@ -57,3 +57,5 @@ has_backtest: false
 materiality_thresholds:
   high: 60
   medium: 25
+  rationale: >-
+    NOT scaled from adidas by revenue. A manufacturer's working capital swings far harder against its own cash flow — twenty inventory days is over EUR 100m here — so a proportionally-scaled band put six of ten drivers into Act and ranked nothing. EUR 60m is most of a year's free cash flow; EUR 25m is a real but absorbable hit.

@@ -122,3 +122,12 @@
   color: var(--color-text-secondary);
   max-width: 68ch;
 }
+
+/* The band is a management tolerance, not a formula, so the reasoning sits
+   with the number rather than in a footnote nobody reaches. */
+.thresholdWhy {
+  display: block;
+  margin-top: var(--space-2);
+  padding-left: var(--space-4);
+  border-left: 2px solid var(--color-border);
+}

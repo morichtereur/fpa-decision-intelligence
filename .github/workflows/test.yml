@@ -36,6 +36,13 @@ jobs:
           cache-dependency-path: web/package-lock.json
       - run: npm ci
       - run: npm run lint
+      # Component tests. Every rendering defect this project has shipped —
+      # invisible exposure bars, an empty driver-tree column, a waterfall's
+      # closing bar collapsed to nothing, one client's disclaimers under
+      # another's name — passed lint, passed the build, passed the whole Python
+      # suite, and was caught only by looking at the rendered output. These run
+      # in jsdom in about a second.
+      - run: npm test
       # NEXT_PUBLIC_API_BASE isn't needed to type-check and build — the
       # cockpit fetches from it at runtime, not at build time.
       - run: npm run build

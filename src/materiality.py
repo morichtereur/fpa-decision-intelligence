@@ -252,21 +252,31 @@ def rank(pack: clientpack.ClientPack) -> list[dict]:
     return rows
 
 
+def _objective_at_plan(pack: clientpack.ClientPack) -> float:
+    return _forecast(pack, pack.base_driver_values())[objective_metric(pack)]
+
+
 def methodology(pack: clientpack.ClientPack) -> dict:
     """The explanation the UI shows next to the ranking. Generated from the
     same constants the engine uses, so it cannot describe a rule that is not
     the one being applied."""
     thresholds = pack.materiality_thresholds
     symbol, unit = pack.currency_symbol, pack.unit
+    plan = _objective_at_plan(pack)
+    share = lambda value: (value / plan * 100) if plan else 0.0  # noqa: E731
     return {
         "objective": pack.objective,
         "objective_metric": objective_metric(pack),
+        "objective_at_plan": plan,
         "thresholds": thresholds,
+        "threshold_share": {"high": share(thresholds["high"]), "medium": share(thresholds["medium"])},
         "threshold_text": (
-            f"Exposure of {symbol}{thresholds['high']:,.0f}m or more is High; "
-            f"{symbol}{thresholds['medium']:,.0f}m or more is Medium; below that, Low. "
-            f"Set per client — materiality is relative to the size of the business."
+            f"Exposure of {symbol}{thresholds['high']:,.0f}m or more is High "
+            f"({share(thresholds['high']):.0f}% of plan {pack.objective.lower()}); "
+            f"{symbol}{thresholds['medium']:,.0f}m or more is Medium "
+            f"({share(thresholds['medium']):.0f}%); below that, Low."
         ),
+        "threshold_rationale": thresholds["rationale"],
         "axes": [
             {
                 "name": "Financial materiality",

@@ -5,6 +5,7 @@ import { formatEur } from "@/lib/format";
 import BacktestBars from "@/components/BacktestBars";
 import VarianceBridge from "@/components/VarianceBridge";
 import MonteCarloChart from "@/components/MonteCarloChart";
+import Disclaimers from "@/components/Disclaimers";
 import styles from "./evidence.module.css";
 
 export const dynamic = "force-dynamic";
@@ -198,55 +199,9 @@ export default async function ForecastRiskPage({
       </section>
       )}
 
-      {/* Client-specific. These disclaimers used to be adidas's, shown under
-          whichever model was loaded — which put "not a price/volume analysis"
-          on a client that decomposes volume and price, and claimed a backtest
-          point for one that has none. A disclaimer that is wrong is worse than
-          no disclaimer. */}
       <section className={styles.section}>
         <h2 className={styles.sectionHeading}>What this is not</h2>
-        <ul className={styles.notList}>
-          {summary.is_synthetic && (
-            <li>
-              <strong>A real company.</strong> {summary.disclaimer}
-            </li>
-          )}
-          <li>
-            <strong>A multi-company benchmark.</strong> One business, modelled in depth over a
-            single planning horizon — not a peer comparison.
-          </li>
-          {summary.has_backtest ? (
-            <>
-              <li>
-                <strong>A price/volume analysis.</strong> {summary.short_label} does not disclose
-                that split, so product division and channel growth are the drivers used here.
-              </li>
-              <li>
-                <strong>A track record.</strong> One backtest point. A single win over a naive
-                baseline is not evidence the driver-based approach generalizes.
-              </li>
-              <li>
-                <strong>A trading or investment signal.</strong> A methodology exercise on public
-                financial disclosures.
-              </li>
-            </>
-          ) : (
-            <>
-              <li>
-                <strong>A validated model.</strong> There is no outturn to test this forecast
-                against, so nothing here demonstrates that the method works — only that it runs.
-              </li>
-              <li>
-                <strong>Measured uncertainty.</strong> The simulation&rsquo;s ranges were chosen to
-                be plausible, not observed. They carry no evidential weight.
-              </li>
-            </>
-          )}
-          <li>
-            <strong>Advice.</strong> Nothing here is a recommendation. The management questions
-            are prompts for a discussion, not conclusions from one.
-          </li>
-        </ul>
+        <Disclaimers summary={summary} className={styles.notList} />
       </section>
     </div>
   );

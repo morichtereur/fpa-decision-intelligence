@@ -29,6 +29,10 @@ facts: "facts.json"
 # as paths rather than hardcoding them is what lets a client with different
 # segmentation (see manufacturing_demo, which segments by product line)
 # use the same engine.
+# Which revenue segmentation the model runs on. adidas discloses both a
+# product-division and a channel split; the model uses one at a time, and this
+# pack chooses product division because it is the one adidas guides against.
+# Pointing this at "channel.2024" would run the same engine on the other axis.
 segments_path: "product_division.2024"
 baseline_group_path: "group.2024"
 
@@ -51,3 +55,5 @@ has_backtest: true
 materiality_thresholds:
   high: 150
   medium: 60
+  rationale: >-
+    EUR 150m is roughly 14% of plan free cash flow — a number that would change the capital allocation conversation. EUR 60m is where it becomes worth a review rather than a note.

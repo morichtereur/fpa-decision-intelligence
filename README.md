@@ -410,9 +410,17 @@ make web                     # Next.js on :3000
 ```
 
 ```bash
-.venv/bin/python -m pytest tests/ -q
-cd web && npm run lint && npm run build && npx tsc --noEmit
+.venv/bin/python -m pytest tests/ -q                        # 231
+cd web && npm test && npm run lint && npm run build && npx tsc --noEmit   # 13
 ```
+
+The component tests are regressions, not coverage. Every rendering defect this
+project has shipped — invisible exposure bars, an empty driver-tree column, a
+waterfall whose closing bar collapsed to zero width, one client's disclaimers
+rendered under another's name — passed lint, passed the build, passed `tsc`
+and passed the entire Python suite. They were caught by looking at the page.
+Each one now has a test that fails if it returns, verified by reintroducing
+the bug and watching it fail.
 
 `npx tsc --noEmit` must run *after* `npm run build`: `LayoutProps` is a Next 16
 generated global that only exists once `.next/types` has been written.
@@ -447,6 +455,15 @@ Read these before drawing conclusions from anything above.
   anything.
 - **Currency formatting assumes euros.** Both packs are EUR; a
   non-euro client would need the formatter parameterised.
+- **Materiality thresholds are declared, not derived.** No ratio reproduces
+  both clients' bands — a share of free cash flow, of revenue, or of EBITDA
+  each gives a sensible number for one and a useless one for the other. The
+  pack states the number and the reasoning, and the interface shows both as a
+  percentage of plan, but it remains a management tolerance rather than a
+  calculation.
+- **One revenue segmentation at a time.** adidas's channel split is extracted
+  and available as an alternative axis (`segments_path`), but the model does
+  not run product division and channel simultaneously.
 
 ## Positioning
 
