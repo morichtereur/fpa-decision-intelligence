@@ -1,0 +1,164 @@
+/* A ranked editorial table, not a data grid. The sort is by priority band, so
+   the bands are section headers rather than a colour column — the structure
+   encodes the ranking instead of annotating it.
+
+   The signature is the exposure bar drawn under each euro figure. It makes
+   the product's central argument visible: a long bar sitting in a low band is
+   a large exposure management cannot act on, and you can see it without
+   reading a single number. */
+
+.wrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+  min-width: 44rem;
+}
+
+.bandRow th {
+  text-align: left;
+  padding: var(--space-6) 0 var(--space-2);
+  border-bottom: 1px solid var(--color-text-primary);
+}
+
+.band:first-child .bandRow th {
+  padding-top: var(--space-2);
+}
+
+.bandHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.bandName {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  letter-spacing: var(--tracking-tight);
+}
+
+.bandMeta {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.bandCritical .bandName { color: var(--color-negative); }
+
+.head th {
+  text-align: right;
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.head th:first-child {
+  text-align: left;
+  padding-left: 0;
+}
+
+.head th:last-child {
+  padding-right: 0;
+}
+
+.row {
+  border-bottom: 1px solid var(--color-border);
+  transition: background var(--duration-fast) var(--ease-standard);
+}
+
+.row:hover {
+  background: var(--color-surface);
+}
+
+.row td {
+  padding: var(--space-3) var(--space-3);
+  vertical-align: top;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.row td:first-child {
+  text-align: left;
+  padding-left: 0;
+  white-space: normal;
+}
+
+.row td:last-child {
+  padding-right: 0;
+}
+
+.driver {
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: 600;
+}
+
+.owner {
+  display: block;
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
+  margin-top: 0.15rem;
+}
+
+.axis {
+  color: var(--color-text-secondary);
+}
+
+.axisHigh {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.exposure {
+  font-size: var(--text-base);
+}
+
+/* Scaled against the largest exposure on the page, so bar length is
+   comparable across bands — which is the point. */
+.bar {
+  display: block;
+  height: 2px;
+  min-width: 1px;
+  margin-top: var(--space-2);
+  margin-left: auto;
+  background: var(--priority-monitor);
+}
+
+.barCritical { background: var(--priority-critical); }
+.barAct { background: var(--priority-act); }
+.barReview { background: var(--priority-review); }
+.barMonitor { background: var(--priority-monitor); }
+
+.rationaleRow td {
+  padding: 0 0 var(--space-4);
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  text-align: left;
+  white-space: normal;
+  max-width: 0; /* lets the cell wrap inside the table's fixed width */
+}
+
+.rationale {
+  max-width: 68ch;
+}
+
+@media (max-width: 60rem) {
+  .table {
+    min-width: 38rem;
+  }
+}

@@ -134,3 +134,121 @@ export interface CommentaryResponse {
   };
   generated_at?: string;
 }
+
+// --- Decision materiality -------------------------------------------------
+
+export type Priority = "Critical" | "Act" | "Review" | "Monitor";
+export type Band = "High" | "Medium" | "Low";
+
+export interface PriorityRow {
+  driver_id: string;
+  label: string;
+  category: string;
+  owner: string;
+  metric: string;
+  unit: string;
+  range_low: number;
+  range_high: number;
+  range_basis: string;
+  value_at_low: number;
+  value_at_high: number;
+  value_at_base: number;
+  /** Signed: the direction of the swing carries meaning. */
+  exposure: number;
+  exposure_magnitude: number;
+  downside: number;
+  per_unit: number;
+  confidence: Band;
+  materiality: Band;
+  uncertainty: Band;
+  controllability: Band;
+  priority: Priority;
+  /** Which axes were computed and which are declared judgements. The UI is
+   *  required to show this — a judgement must never read as a measurement. */
+  basis: { materiality: string; uncertainty: string; controllability: string };
+  rationale: string;
+}
+
+export interface MethodologyAxis {
+  name: string;
+  basis: string;
+  detail: string;
+}
+
+export interface Methodology {
+  objective: string;
+  objective_metric: string;
+  thresholds: { high: number; medium: number };
+  threshold_text: string;
+  axes: MethodologyAxis[];
+  rules: { when: string; then: Priority; why: string }[];
+  limitations: string[];
+}
+
+export interface PrioritiesResponse {
+  ranked: PriorityRow[];
+  methodology: Methodology;
+}
+
+export interface RuleResult {
+  id: string | null;
+  label: string;
+  metric: string;
+  metric_kind: "driver" | "output";
+  condition: string;
+  threshold: number;
+  observed: number;
+  breached: boolean;
+  severity: "critical" | "high" | "medium" | "low";
+  management_question: string;
+  suggested_owner: string;
+  next_action: string;
+  trigger: string;
+}
+
+export interface ClientSummary {
+  id: string;
+  name: string;
+  short_label: string;
+  data_basis: string;
+  industry: string;
+  currency: string;
+  currency_symbol: string;
+  unit: string;
+  fiscal_year: string;
+  objective: string;
+  is_synthetic: boolean;
+  has_backtest: boolean;
+  disclaimer: string;
+  audiences: string[];
+}
+
+export interface DecisionBriefResponse {
+  client: ClientSummary;
+  objective: string;
+  objective_metric: string;
+  objective_value: number;
+  objective_variance: number;
+  is_base_case: boolean;
+  lead: PriorityRow & {
+    threshold: RuleResult | null;
+    management_question: string;
+    suggested_owner: string;
+    next_action: string;
+    trigger: string;
+    /** Set when the lead exposure is covered by a rule that has NOT fired —
+     *  the brief still names who watches it and when. */
+    watching_rule: string | null;
+  };
+  ranked: PriorityRow[];
+  rules: RuleResult[];
+  breached_count: number;
+  attention: {
+    state: "critical" | "attention" | "steady";
+    headline: string;
+    breached: RuleResult[];
+    critical_count: number;
+    act_count: number;
+  };
+  methodology: Methodology;
+}

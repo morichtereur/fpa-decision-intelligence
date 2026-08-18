@@ -4,10 +4,12 @@ import type {
   CommentaryResponse,
   DriverConfig,
   DriverPriorityRow,
+  DecisionBriefResponse,
   DriverValues,
   MonteCarloResponse,
   OutlookResponse,
   PresetsResponse,
+  PrioritiesResponse,
   ScenarioResponse,
 } from "./types";
 
@@ -43,6 +45,13 @@ export const api = {
   driverPriority: () => request<DriverPriorityRow[]>("/api/driver-priority"),
   monteCarlo: () => request<MonteCarloResponse>("/api/monte-carlo"),
   assumptions: () => request<AssumptionRow[]>("/api/assumptions"),
+  priorities: () => request<PrioritiesResponse>("/api/priorities"),
+  decisionBrief: () => request<DecisionBriefResponse>("/api/decision-brief"),
+  decisionBriefFor: (driverValues: DriverValues) =>
+    request<DecisionBriefResponse>("/api/decision-brief", {
+      method: "POST",
+      body: JSON.stringify({ driver_values: driverValues }),
+    }),
   commentary: (scenarioId: string) => request<CommentaryResponse>(`/api/commentary/${scenarioId}`),
   scenario: (driverValues: DriverValues) =>
     request<ScenarioResponse>("/api/scenario", {

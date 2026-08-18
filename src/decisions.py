@@ -87,9 +87,16 @@ def evaluate(pack, driver_values: dict, forecast: dict, base: dict) -> list[dict
     return results
 
 
-def threshold_status(rules: list[dict], driver_id: str) -> dict | None:
-    """The most severe breached rule that bears on one driver, if any."""
-    relevant = [r for r in rules if r["metric"] == driver_id and r["breached"]]
+def threshold_status(rules: list[dict], driver_id: str, breached_only: bool = True) -> dict | None:
+    """The most severe rule bearing on one driver.
+
+    `breached_only=False` is used for the brief's owner and review trigger: a
+    threshold that exists and has NOT fired still tells you who watches this
+    exposure and when they next look at it. Suppressing that until something
+    goes wrong would leave the brief's "next" line empty exactly when the plan
+    is on track, which is most of the time.
+    """
+    relevant = [r for r in rules if r["metric"] == driver_id and (r["breached"] or not breached_only)]
     if not relevant:
         return None
     return min(relevant, key=lambda r: _SEVERITY_ORDER.get(r["severity"], 9))
@@ -120,6 +127,9 @@ def brief(pack, driver_values: dict | None = None) -> dict:
     lead = ranked[0]
     breached = [r for r in rules if r["breached"]]
     lead_rule = threshold_status(rules, lead["driver_id"])
+    # Falls back to an un-breached rule on the same driver, so the brief can
+    # still name a watcher and a review point when nothing has gone wrong.
+    lead_watch = lead_rule or threshold_status(rules, lead["driver_id"], breached_only=False)
 
     metric = materiality.objective_metric(pack)
     return {
@@ -139,9 +149,10 @@ def brief(pack, driver_values: dict | None = None) -> dict:
                 lead_rule["management_question"] if lead_rule
                 else _default_question(pack, lead)
             ),
-            "suggested_owner": lead_rule["suggested_owner"] if lead_rule else lead["owner"],
+            "suggested_owner": lead_watch["suggested_owner"] if lead_watch else lead["owner"],
             "next_action": lead_rule["next_action"] if lead_rule else "",
-            "trigger": lead_rule["trigger"] if lead_rule else "",
+            "trigger": lead_watch["trigger"] if lead_watch else "",
+            "watching_rule": lead_watch["label"] if lead_watch and not lead_rule else None,
         },
         "ranked": ranked,
         "rules": rules,
@@ -156,11 +167,11 @@ def _default_question(pack, lead: dict) -> str:
     question about the assumption, because that is all the model knows —
     inventing a specific operational question would be putting words in the
     business's mouth."""
-    symbol = pack.currency_symbol
+    # The euro figure is already on the line above in the brief, so it is not
+    # repeated here — the question should be the question, not a restatement.
     return (
-        f"{lead['label']} carries the largest actionable exposure in the plan "
-        f"({symbol}{lead['exposure_magnitude']:,.0f}m across its plausible range). "
-        f"Is the plan assumption still the right one, and what would move it?"
+        f"Is the plan assumption for {lead['label'].lower()} still the right one, "
+        f"and what would have to change for it to move?"
     )
 
 

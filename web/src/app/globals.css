@@ -24,6 +24,15 @@
   --color-negative-muted: rgba(176, 66, 31, 0.12);
   --color-noise: #b9bdb2;
 
+  /* Priority states. Colour is spent on Critical alone — the one state that
+     warrants alarm. Act, Review and Monitor separate by weight of ink, not by
+     hue, so a screen of Monitor rows reads as calm rather than as a traffic
+     light with three of its lamps lit. */
+  --priority-critical: var(--color-negative);
+  --priority-act: var(--color-text-primary);
+  --priority-review: var(--color-border-strong);
+  --priority-monitor: var(--color-border);
+
   /* Typography — grotesque display over serif body, mono for anything
      that is data rather than prose. Numbers are always mono: tabular
      figures, consistent decimal alignment. */

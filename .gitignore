@@ -15,3 +15,6 @@ data/raw/*.pdf
 
 .pytest_cache/
 node_modules/
+
+# Local dev server config — ports differ per machine.
+.claude/launch.json

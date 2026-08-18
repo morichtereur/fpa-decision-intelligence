@@ -4,11 +4,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import styles from "./Nav.module.css";
 
+// Ordinals were dropped when Priorities was added. Numbering implied a
+// sequence to be walked through, which suited a portfolio piece read once and
+// misdescribed a tool returned to weekly: only Outlook is an entry point, and
+// the rest are destinations reached in whatever order the question demands.
 const ITEMS = [
-  { href: "/", label: "01 Outlook" },
-  { href: "/planner", label: "02 Scenario Planner" },
-  { href: "/forecast-risk", label: "03 Forecast & Risk" },
-  { href: "/model", label: "04 Model & Assumptions" },
+  { href: "/", label: "Outlook" },
+  { href: "/priorities", label: "Priorities" },
+  { href: "/planner", label: "Planner" },
+  { href: "/forecast-risk", label: "Forecast & Risk" },
+  { href: "/model", label: "Model" },
 ];
 
 export default function Nav() {

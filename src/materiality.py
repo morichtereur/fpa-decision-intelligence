@@ -205,21 +205,38 @@ def assess_driver(pack: clientpack.ClientPack, driver_id: str, thresholds: dict)
 
 
 def _rationale(materiality, uncertainty, controllability, priority, label) -> str:
+    """Why this row sits where it does, naming the axis that bound the
+    decision. Rows in the same band get different sentences when different
+    axes put them there — a rationale that reads the same for every row in a
+    band is telling the reader nothing the band header did not."""
     if materiality == "Low":
-        return f"{label} moves the objective too little across its plausible range to compete for attention."
+        return (
+            f"Ranked on exposure: {label.lower()} moves the objective too little across its "
+            f"plausible range to compete for attention, whatever else is true of it."
+        )
     if controllability == "Low":
         return (
-            f"{label} carries {materiality.lower()} exposure, but management has little influence over it "
-            f"inside the horizon — worth monitoring, not worth a workstream."
+            f"Ranked on controllability: the exposure is {materiality.lower()}, but management has "
+            f"little influence over {label.lower()} inside the horizon. Worth watching; not worth a "
+            f"workstream."
         )
     if priority == "Critical":
         return (
-            f"{label} is both highly material and highly uncertain, and management can move it. "
-            f"This is where attention converts into outcome."
+            f"Material, unresolved and movable. {label} is the assumption where the plan is least "
+            f"settled and management still has a lever."
         )
     if priority == "Act":
-        return f"{label} carries high exposure on a reasonably firm assumption, and is controllable."
-    return f"{label} carries moderate exposure and is controllable — worth a review, not an escalation."
+        if uncertainty == "Low":
+            return (
+                f"Large exposure on a firm assumption. The number is not in doubt — the question is "
+                f"whether {label.lower()} is being managed to it."
+            )
+        return (
+            f"Large exposure on an assumption that is only partly settled, and management can move it."
+        )
+    if controllability == "High":
+        return f"Moderate exposure, and {label.lower()} is directly controllable. A review, not an escalation."
+    return f"Moderate exposure with a partial lever. Worth a review."
 
 
 def rank(pack: clientpack.ClientPack) -> list[dict]:

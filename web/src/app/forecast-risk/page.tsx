@@ -1,18 +1,24 @@
+import Link from "next/link";
 import { api } from "@/lib/api";
 import { formatEur } from "@/lib/format";
 import BacktestBars from "@/components/BacktestBars";
 import MonteCarloChart from "@/components/MonteCarloChart";
-import DriverPriorityList from "@/components/DriverPriorityList";
 import styles from "./forecast-risk.module.css";
+
+/** The simulation samples model assumptions, not business drivers, so its
+ *  variable names are the model's. Translated here rather than shown raw. */
+const SENSITIVITY_LABELS: Record<string, string> = {
+  working_capital_pct: "Working capital, % of sales",
+  operating_profit_target: "Operating profit within guidance",
+  capex: "Capital expenditure",
+  growth: "Revenue growth",
+  ebitda_margin_pct: "EBITDA margin",
+};
 
 export const dynamic = "force-dynamic";
 
 export default async function ForecastRiskPage() {
-  const [backtest, monteCarlo, driverPriority] = await Promise.all([
-    api.backtest(),
-    api.monteCarlo(),
-    api.driverPriority(),
-  ]);
+  const [backtest, monteCarlo] = await Promise.all([api.backtest(), api.monteCarlo()]);
 
   return (
     <div className={styles.page}>
@@ -94,12 +100,24 @@ export default async function ForecastRiskPage() {
       </section>
 
       <section className={styles.section}>
-        <h2 className={styles.sectionHeading}>Where should FP&amp;A spend the next hour of diligence?</h2>
+        <h2 className={styles.sectionHeading}>Which assumption explains the most variance?</h2>
         <p className={styles.sectionIntro}>
-          Ranked by simulated sensitivity to free cash flow, combined with how confident the
-          underlying assumption is.
+          The simulation ranks assumptions by how much of the free-cash-flow spread each one
+          explains. That is a statistical reading, and it is not the same question as where
+          management should spend its attention — an assumption can dominate the variance and
+          still be one nobody can move. Priorities answers that second question.
         </p>
-        <DriverPriorityList rows={driverPriority} />
+        <ul className={styles.varianceList}>
+          {Object.entries(monteCarlo.sensitivity_to_fcf).map(([name, correlation]) => (
+            <li key={name}>
+              <span>{SENSITIVITY_LABELS[name] ?? name}</span>
+              <span className="mono">{correlation.toFixed(2)}</span>
+            </li>
+          ))}
+        </ul>
+        <Link href="/priorities" className={styles.moreLink}>
+          Ranked management priorities →
+        </Link>
       </section>
     </div>
   );

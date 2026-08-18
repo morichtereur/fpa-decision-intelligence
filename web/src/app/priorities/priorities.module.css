@@ -1,0 +1,124 @@
+.page {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: var(--space-7) var(--space-5) var(--space-8);
+}
+
+.eyebrow {
+  display: block;
+  margin-bottom: var(--space-3);
+}
+
+.heading {
+  font-size: var(--text-3xl);
+  max-width: 20ch;
+  text-wrap: balance;
+}
+
+.intro {
+  max-width: 62ch;
+  margin: var(--space-4) 0 var(--space-7);
+  color: var(--color-text-secondary);
+}
+
+.section {
+  margin-top: var(--space-7);
+}
+
+.sectionHeading {
+  font-size: var(--text-xl);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border-strong);
+}
+
+/* Methodology is set as a two-column reference block rather than an
+   accordion: a reader who wants to challenge the ranking should not have to
+   click to find the rule that produced it. */
+.method {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--space-5);
+  margin-top: var(--space-5);
+}
+
+.axisName {
+  font-family: var(--font-display);
+  font-weight: 600;
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.basis {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.computed { color: var(--color-accent); }
+.declared { color: var(--color-text-secondary); }
+
+.axisDetail {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.ruleTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: var(--space-5);
+  font-size: var(--text-sm);
+}
+
+.ruleTable th {
+  text-align: left;
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ruleTable td {
+  padding: var(--space-3) var(--space-4) var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: top;
+}
+
+.ruleTable td:last-child {
+  color: var(--color-text-secondary);
+  padding-right: 0;
+}
+
+.then {
+  font-family: var(--font-display);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.limits {
+  margin: var(--space-5) 0 0;
+  padding: 0;
+  list-style: none;
+  max-width: 68ch;
+}
+
+.limits li {
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--color-border);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.thresholdNote {
+  margin-top: var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  max-width: 68ch;
+}
