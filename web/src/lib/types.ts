@@ -135,6 +135,19 @@ export interface CommentaryResponse {
     ungrounded: string[];
     grounding_rate: number | null;
   };
+  /** Two independent checks. Grounding: is this number in the table?
+   *  Coherence: is it being used to say something the table supports? A
+   *  paragraph can pass the first completely and fail the second. */
+  coherence?: {
+    finding_count: number;
+    clean: boolean;
+    findings: { kind: string; detail: string; sentence: string }[];
+  };
+  provenance?: {
+    provider: string;
+    model: string;
+    usage?: { input_tokens: number; output_tokens: number };
+  };
   generated_at?: string;
 }
 

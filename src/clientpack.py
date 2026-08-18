@@ -268,6 +268,10 @@ class DriverSpec:
             "description": self.description,
             "impacts": list(self.impacts),
             "role": self.role,
+            # The interface's driver tree hangs each client's drivers off the
+            # calculation step they feed, so it needs to know which model
+            # assumption each one maps to.
+            "maps_to": self.maps_to,
             "sensitivity_key": self.sensitivity_key,
             "exposure_range": list(self.exposure_range) if self.exposure_range else None,
         }

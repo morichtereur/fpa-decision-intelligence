@@ -1,14 +1,24 @@
+/* A management note, not an assistant.
+ *
+ * The panel used to be a bordered surface box with a filled dark call-to-
+ * action and the text set as an italic pull-quote behind an accent rule —
+ * which announced "AI feature" three separate ways. It is now a section like
+ * any other: a hairline rule, plain serif body, and a quiet text control.
+ *
+ * What stays loud is the verification. The grounding and coherence counts are
+ * the reason a finance reader should trust the paragraph at all, and they are
+ * the one thing here worth a reader's eye. */
+
 .panel {
-  border: 1px solid var(--color-border-strong);
-  padding: var(--space-5);
-  background: var(--color-surface);
+  border-top: 1px solid var(--color-border-strong);
+  padding-top: var(--space-4);
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-3);
   flex-wrap: wrap;
   gap: var(--space-2);
 }
@@ -17,30 +27,29 @@
   color: var(--color-text-secondary);
 }
 
-.status {
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
-  color: var(--color-text-secondary);
-}
-
-.rateGood {
-  color: var(--color-positive);
-}
-
-.rateWarn {
-  color: var(--color-negative);
-}
-
 .text {
   margin: 0;
   font-family: var(--font-serif);
-  font-style: italic;
-  font-size: var(--text-lg);
-  line-height: var(--leading-snug);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
   color: var(--color-text-primary);
-  padding-left: var(--space-4);
-  border-left: 2px solid var(--color-accent);
+  max-width: 64ch;
 }
+
+.footnote {
+  margin: var(--space-4) 0 0;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  max-width: 64ch;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+}
+
+.checkGood { color: var(--color-accent); }
+.checkWarn { color: var(--color-negative); }
 
 .empty {
   display: flex;
@@ -52,26 +61,35 @@
 .empty p {
   font-size: var(--text-sm);
   color: var(--color-text-secondary);
-  max-width: 42rem;
+  max-width: 64ch;
+  margin: 0;
 }
 
+/* A text control, deliberately quieter than any button on the page that
+   changes a number. Drafting prose is the least consequential thing here. */
 .generate {
   font-family: var(--font-display);
   font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: var(--tracking-label);
   text-transform: uppercase;
-  color: var(--color-bg);
-  background: var(--color-text-primary);
-  border: 1px solid var(--color-text-primary);
-  padding: var(--space-3) var(--space-4);
+  color: var(--color-accent);
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--color-border-strong);
+  padding: 0 0 0.15rem;
   cursor: pointer;
-  transition: background var(--duration-fast) var(--ease-standard);
+  transition: color var(--duration-fast) var(--ease-standard);
 }
 
 .generate:hover:not(:disabled) {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
+  color: var(--color-accent-hover);
+  border-bottom-color: var(--color-accent);
+}
+
+.generate:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
 }
 
 .generate:disabled {
@@ -82,10 +100,11 @@
 .error {
   font-size: var(--text-xs);
   color: var(--color-negative);
+  margin: 0;
 }
 
 .details {
-  margin-top: var(--space-4);
+  margin-top: var(--space-3);
   font-size: var(--text-xs);
   color: var(--color-text-secondary);
 }

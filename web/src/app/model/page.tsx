@@ -31,7 +31,11 @@ export default async function ModelPage({
 
       <section className={styles.section}>
         <h2 className={styles.sectionHeading}>Calculation chain</h2>
-        <DriverTree summary={summary} drivers={drivers} />
+        <p className={styles.sectionIntro}>
+          The chain is fixed by the model. The drivers to its right are
+          {" "}{summary.short_label}&rsquo;s own, and change with the planning model.
+        </p>
+        <DriverTree drivers={drivers} />
       </section>
 
       <section className={styles.section}>

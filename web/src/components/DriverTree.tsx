@@ -1,4 +1,4 @@
-import type { ClientSummary, DriverConfig } from "@/lib/types";
+import type { DriverConfig } from "@/lib/types";
 import styles from "./DriverTree.module.css";
 
 /** The calculation chain is fixed by the model. What varies per client is
@@ -34,10 +34,8 @@ const CHAIN = [
 ] as const;
 
 export default function DriverTree({
-  summary,
   drivers,
 }: {
-  summary: ClientSummary;
   drivers: DriverConfig;
 }) {
   const feeding = (assumption: string | null) => {
@@ -61,9 +59,6 @@ export default function DriverTree({
               </div>
               {inputs.length > 0 && (
                 <div className={styles.inputs}>
-                  <span className={styles.inputsLabel}>
-                    {summary.short_label} drivers
-                  </span>
                   <ul className={styles.inputList}>
                     {inputs.map((input) => (
                       <li key={input.id}>

@@ -196,8 +196,15 @@ UI as well as here.
 | Axis | Source | Status |
 |---|---|---|
 | **Financial materiality** | € change in the objective KPI when the driver moves across its plausible range, computed by re-running `model.forecast()` — the same technique `compute_bridge()` already uses | **Computed** |
-| **Uncertainty** | Disclosure confidence (`drivers.py`) + dispersion in the Monte Carlo | **Computed + declared** |
+| **Uncertainty** | The inverse of the driver's declared disclosure confidence | **Declared** |
 | **Controllability** | Management's ability to influence the driver within the horizon | **Declared** in the client pack |
+
+> **As built.** This audit originally proposed combining disclosure confidence
+> with Monte Carlo dispersion for the uncertainty axis. The implementation uses
+> confidence alone. Mixing a declared judgement with a simulated statistic
+> would have produced an axis that was neither auditable nor measured, and
+> whose provenance could not be labelled honestly on screen. Simulated
+> sensitivity is still shown, on Evidence, as the separate question it is.
 
 Controllability cannot be derived from public financials. It is a judgement,
 it must live in configuration, and the UI must say so — the same way
@@ -247,3 +254,25 @@ this cell, with the full band table reachable from the Priorities screen.
 4. **Decision Brief** → Outlook reorder
 5. Planner upgrade (F7); Model/Evidence split (F6); nav change (F4, F5)
 6. Polish, responsive QA, docs, final design critique
+
+
+---
+
+## 8. Built against this audit
+
+| Finding | Outcome |
+|---|---|
+| F1 — priority view had no home | **Priorities** is a primary destination; the duplicate is gone from Forecast & Risk |
+| F2 — two-axis ranking, not in euros | Three-axis engine, exposure computed in euros (`src/materiality.py`) |
+| F3 — Outlook led with evidence | Outlook opens with the Decision Brief; backtest moved below |
+| F4 — nav ordinals implied a sequence | Dropped |
+| F5 — client identity hardcoded in chrome | The wordmark subtitle is now the model selector |
+| F6 — `/model` served two audiences | Partly. Model is client-driven and Evidence carries the credibility material, but the split is not yet clean |
+| F7 — Planner ended at a number | Consequence panel: thresholds crossed, priority, question, owner, trigger |
+| F8 — things to preserve | Vintage empty state, "what this is not", out-of-guidance flagging and the grounding/coherence split all survive |
+
+Audience modes (§4) were **not built**. Having built Priorities and the Brief,
+the three modes would mostly re-cut content already pitched correctly: the
+Brief is the CFO view, Priorities is the FP&A view, and the owner/trigger rows
+carry the business-owner framing. A global mode switch would add a control
+whose main effect is to make a reader wonder what they are missing elsewhere.

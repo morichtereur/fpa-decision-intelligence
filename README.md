@@ -1,18 +1,158 @@
-# FP&A Decision Model
+# FP&A Decision Intelligence Accelerator
 
-[![Tests](https://github.com/morichtereur/fpa-decision-model/actions/workflows/test.yml/badge.svg)](https://github.com/morichtereur/fpa-decision-model/actions/workflows/test.yml)
+**A configurable decision-support accelerator that turns planning assumptions
+into quantified financial exposures, ranked management priorities and
+traceable actions.**
 
-**Can a driver-based FP&A model beat a naive top-down forecast, checked against what actually happened?**
+## The problem
 
-FP&A models often look precise while hiding the assumptions that actually
-drive the answer. This project separates reported facts, planning
-assumptions and calculated outputs, then traces channel and category growth
-through to EBITDA and free cash flow for one real company — rather than
-presenting a forecast as if it were a measurement.
+FP&A review cycles reliably produce analysis. They much less reliably produce
+decisions. A forecast pack lands, the variances are explained, the sensitivity
+table is admired — and the meeting ends without anyone naming which exposure
+is worth the next thirty minutes, who owns it, or what would have to change
+for the answer to move.
 
-**[▶ Open the live cockpit](https://fpa-decision-model.vercel.app/planner)** — drag
-the working-capital slider and watch the free-cash-flow bridge move. That one
-interaction is the finding below.
+The gap is not analytical rigour. It is that the analysis stops one step short
+of the decision, and the step it stops short of is the one that requires
+judgement about what management can actually influence.
+
+## The concept
+
+Carry the chain all the way through:
+
+```text
+financial data → forecast → uncertainty → financial exposure
+              → management priority → decision → action
+```
+
+Everything left of *exposure* is arithmetic and this project computes it.
+Everything right of it needs stated judgement, so this project makes that
+judgement configuration — declared per client, visible in the interface, and
+labelled as judgement rather than dressed up as a measurement.
+
+## Workflow
+
+**Configure** the business model and its planning drivers →
+**Predict** with a deterministic forecast →
+**Stress** it against scenarios and disclosed uncertainty →
+**Prioritize** by what is material, unresolved and movable →
+**Act** on a named question with a named owner and a review trigger.
+
+## Public demonstration: adidas AG
+
+The first demonstration client is built entirely from adidas's published
+annual reports. Nothing is invented: where the company does not disclose
+something, the model says so rather than filling the gap. The EBITDA margin is
+back-solved from the operating-profit guidance and labelled as derived; the
+tax rate is carried forward from the prior year and labelled as the weakest
+assumption in the model; adidas does not report free cash flow at all, so it
+is constructed the same way for actuals and forecasts and that construction is
+stated.
+
+The forecast is backtested against what actually happened — one honest point,
+not a track record, and the README says so where the number appears.
+
+## Configurability
+
+The reusable engine is separated from one client's economics. Drivers,
+scenarios, decision thresholds and data mappings live in `clients/<id>/` as
+configuration; the engine reads a pack and has no knowledge of which client it
+is serving.
+
+```text
+clients/
+  adidas/               client.yaml  drivers.yaml  scenarios.yaml
+                        decision_rules.yaml  mappings.yaml  facts.json
+  manufacturing_demo/   (same shape, materially different economics)
+```
+
+The second client — **Meridian Industrial Systems** — is **synthetic and
+labelled as such everywhere it appears**. It exists to prove the architecture
+is genuinely reusable rather than adidas-shaped, so its economics differ in
+kind: revenue growth is decomposed into volume and price, working capital is
+driven by DSO, inventory days and DPO rather than a single percentage, and
+input costs are expressed as movement against plan. Ten drivers against
+adidas's five, in six categories against five.
+
+That difference forced a real feature rather than a cosmetic one. When several
+business drivers feed one model assumption, each must declare whether it is a
+*component* of that assumption (price growth still contributes its two points
+at plan) or a *deviation* from it (inventory days only count when they move
+away from plan). Getting that distinction wrong silently understates the base
+case — which is the class of error that makes a model untrustworthy — so it is
+explicit in the schema and asserted in tests.
+
+No backtest is offered for the synthetic client. A forecast error measured
+against invented actuals would look like evidence and be none of it.
+
+### Baselines are derived, not typed in
+
+adidas's driver defaults are not free parameters. They are chosen so that the
+five defaults, run through the model, reproduce the backtested forecast
+*exactly* — the planner's base case **is** the backtest, which is what makes
+the backtest evidence for the planner rather than a separate exhibit.
+
+A literal-valued configuration schema would have frozen those numbers and
+severed that link the first time a fact was corrected. So a baseline resolves
+through `literal`, `fact`, `midpoint` or `solve`, with model-specific algebra
+staying in Python where it is testable. There is deliberately no general
+expression evaluator: configuration should be declarative and safe to read,
+not a second programming language.
+
+Three independent implementations are cross-checked in
+`tests/test_drivers.py` — the client pack, the frozen pre-configuration
+implementation it replaced, and the backtest computing the same forecast from
+raw facts. They agree to 1e-12.
+
+## Decision materiality
+
+The ranking that answers *where should management spend its next 30 minutes*
+rests on three axes, and their epistemic status is different:
+
+| Axis | Source | Status |
+|---|---|---|
+| **Financial materiality** | The euro swing in the objective KPI when the driver moves across its plausible range, obtained by re-running the forecast at each end | **Computed** |
+| **Uncertainty** | The inverse of the driver's disclosure confidence, stated and justified in the client pack | **Declared** |
+| **Controllability** | How far management can move the driver inside the horizon | **Declared** |
+
+Two of the three are judgements. No amount of arithmetic extracts *can
+management influence FX?* from a set of published financials, so the honest
+move is to declare it, record it where it can be audited, and label it in the
+interface — never to present it as if it fell out of the model.
+
+**Priority is a classification, not a score.** The tempting formula is
+materiality × uncertainty × controllability. It is rejected for two reasons:
+it implies precision that three-point ordinal inputs do not have, and it
+collapses cases demanding different responses — a large uncontrollable
+exposure and a moderate controllable one multiply to the same number and call
+for opposite behaviour.
+
+```text
+materiality Low                      → Monitor
+controllability Low                  → Monitor
+materiality High + uncertainty High  → Critical
+materiality High                     → Act
+otherwise                            → Review
+```
+
+The second line earns the model its keep. A naive materiality × uncertainty
+ranking sends management straight at the largest uncertain exposure even when
+nothing can be done about it inside the year. Ranking it *Monitor* is a
+deliberate statement: attention is a budget, and it should be spent where it
+converts into an outcome.
+
+It is visible in the output. For adidas, the effective tax rate carries €70m
+of exposure and ranks **Monitor**, sitting above capex at €60m ranked
+**Review** — because nobody moves the tax rate this year. For the
+manufacturer, raw material cost carries €42m and ranks below capex at €25m for
+the same reason.
+
+Every threshold in `decision_rules.yaml` carries a suggested management
+question, a suggested owner, a next action and a review trigger. The language
+is deliberate throughout: *suggested* question, *suggested* owner, *area
+requiring review*. Software that tells a CFO what to do is making a claim it
+cannot support. Software that tells a CFO what to ask is doing the job.
+
 
 ## The guardrail: getting LLM prose into a deliverable that carries numbers
 
@@ -139,140 +279,7 @@ either check is not written, and the command exits non-zero.
 That leaves near-miss drift, where a tolerance is a poor instrument, open and
 stated here rather than discovered by a reader.
 
-## Decision implication
-
-For a CFO the useful output is not the forecast, it is where to spend review
-time. Free cash flow correlates −0.92 with the working-capital assumption and
-−0.19 with revenue growth, so the quarterly argument about the growth rate —
-the one that fills the room — is the input that moves the answer least. The
-naive forecast's largest miss came from precisely the assumption nobody
-debated: it held working capital flat while it rose from 19.7% to 23.0% of
-sales.
-
-That reframes the planning cycle rather than improving it at the margin.
-Growth is the number with the most opinions attached and the least leverage;
-working capital is the reverse. A review built on this evidence opens on
-payment terms, inventory and collection, and carries the growth assumption as
-a range rather than negotiating it as a figure.
-
-## Key finding
-
-**Yes, on every metric — but both forecasts still missed by a lot, because adidas beat its own guidance.** Built as of FY2024 using only that year's data and adidas's own stated FY2025 outlook, the driver-based model's error was smaller than a naive extrapolation's on revenue (3.1% vs. 5.5%), operating profit (14.9% vs. 22.3%) and free cash flow (3.4% vs. 14.8%). Both undershot actual FY2025 operating profit — adidas guided €1.7-1.8bn and delivered €2,056m — so "the driver-based model won" is not the same claim as "the driver-based model was accurate."
-
-| metric | naive error | driver-based error |
-|---|---|---|
-| revenue | 5.5% | 3.1% |
-| operating profit | 22.3% | 14.9% |
-| free cash flow | 14.8% | 3.4% |
-
-**The dominant source of forecast uncertainty is working capital, not growth.** A Monte Carlo run over adidas's own disclosed FY2025 guidance ranges (not invented historical volatility — three fiscal years is too few to estimate that honestly) shows free cash flow correlates with working-capital assumptions at -0.92, versus -0.19 for revenue growth. The naive method's biggest miss was exactly this: it held working capital % of sales flat at FY2024's level, but it rose from 19.7% to 23.0% in FY2025 — a real cash drag a growth-only extrapolation cannot see.
-
-**One data-quality finding along the way:** adidas's FY2025 report restates FY2024's product-division mix — Accessories goes from €1,499m as originally reported to €1,779m restated, a ~19% gap ("reclassification within the product divisions," per the report's own footnote). Group-level financials (net sales, EBITDA, operating profit) are *not* restated, only the segment split is — a distinction the model has to preserve rather than flatten into one "2024" number.
-
-![Monte Carlo free cash flow distribution](data/monte_carlo_fcf.png)
-
-Full generated readout: [`RESULTS.md`](RESULTS.md) — regenerated by
-`make report` after any change to the model, never hand-edited.
-
-This is one backtest point, not a track record; see "What this is not" below.
-
-## Interactive FP&A Decision Cockpit
-
-![Outlook — the opening screen](docs/cockpit-outlook.png)
-
-Change the underlying forecast assumptions and trace their effect through
-operating profit, working capital and free cash flow. Four views — Outlook,
-Scenario Planner, Forecast & Risk, Model & Assumptions — over the same
-model this README describes; nothing in the interface computes a number
-the Python model doesn't.
-
-![Scenario Planner — the Working Capital Stress preset](docs/cockpit-planner.png)
-
-The Scenario Planner is the point of the exercise: five drivers, each
-shown with its baseline, its source, its confidence, and whether the
-current value sits outside adidas's own disclosed guidance range. Moving
-one recalculates revenue, operating profit, working capital and free cash
-flow immediately, shows the change as a baseline → adjusted delta and a
-free-cash-flow bridge, and — on request, not automatically — a grounded
-management commentary generated from that scenario's own output table.
-
-**Why Next.js + FastAPI, not Streamlit:** the visual and interaction bar
-here (bespoke typography, a custom-drawn slider with a guidance-range
-overlay, a waterfall bridge, no default-Streamlit chrome) is exactly where
-Streamlit fights you — more effort goes into suppressing its defaults than
-into the product. FastAPI exposes the existing `src/` model as JSON; it
-adds no forecasting logic of its own. The Next.js frontend reuses the same
-design tokens (color, type, spacing) as
-[morichtereur.github.io](https://morichtereur.github.io), so the cockpit
-reads as part of one portfolio rather than a one-off UI experiment.
-
-**Reproducibility is enforced, not assumed:** `tests/test_drivers.py`
-checks that the planner's Base case reproduces `src/backtest.driver_based()`
-exactly, and `tests/test_api.py` cross-checks every scenario the API can
-return against a direct `src/model.forecast()` call. The UI is an
-interface to the model, not a second model.
-
-### Run the cockpit
-
-```bash
-make api                          # FastAPI on :8000 — the model, as JSON
-cd web && cp .env.local.example .env.local && npm install && npm run dev   # Next.js on :3000
-```
-
-### Deploy it
-
-Two Vercel projects from this one repository.
-
-**API** — a new project with **Root Directory** left at the repo root.
-`vercel.json` builds `api/index.py` as a Python serverless function and
-routes every `/api/*` request into the FastAPI app. Set `CORS_ORIGINS` to
-the frontend's origin once it exists.
-
-**Frontend** — a second project with **Root Directory** set to `web`.
-Next.js is detected without further configuration. Set
-`NEXT_PUBLIC_API_BASE` to the API project's URL.
-
-Serverless rather than a long-running host on purpose: free container tiers
-sleep after minutes of inactivity and answer the next visitor after a
-30-60s cold start, which is worse than no demo. `render.yaml` is kept as a
-fallback if the serverless route needs more fighting than it is worth.
-
-The function installs `api/requirements.txt`, which is deliberately smaller
-than the repo's: matplotlib belongs to `src/report.py`, pypdf to
-`src/extract.py`, and the Anthropic SDK is imported inside
-`commentary.write()` rather than at module scope — so a bundle that never
-plots, parses a PDF or calls an LLM does not carry any of them.
-
-Three of the four routes are server-rendered on demand, since they read the
-model at request time — so the frontend needs a Node runtime rather than a
-static export.
-
-**No `ANTHROPIC_API_KEY` on either host.** Preset commentary is served from
-the committed `data/commentary.json` and works without one;
-`/api/commentary/live` returns a 503 with a clear message rather than
-exposing a billable endpoint to the open internet. Live commentary stays a
-local-development feature.
-
-Verified end to end against a production build locally — `next build` +
-`next start` against the API, presets recomputing through `POST
-/api/scenario`. The hosted deployment itself is one connect step on each
-platform.
-
-## The company
-
-**adidas AG**, using its FY2024 and FY2025 annual reports (not part of the
-[dax-intelligence](https://github.com/morichtereur/dax-intelligence)
-corpus — sourced separately; see `data/raw/README.md` for download links).
-
-adidas doesn't disclose a price/volume bridge. What it discloses,
-consistently, is currency-neutral revenue growth broken down by **product
-division** (Footwear, Apparel, Accessories) and **channel** (Wholesale,
-Direct-to-Consumer), with FX visible only as the gap between reported and
-currency-neutral growth. That's a real constraint, not an oversight: the
-model's driver granularity is bounded by what the company actually
-discloses.
-
-## Method
+## Method: the adidas pipeline, step by step
 
 **Data → model → result → decision implication → evaluation**
 
@@ -291,9 +298,11 @@ discloses.
 3. **Backtest** (`src/backtest.py`) — the naive extrapolation (FY2023→FY2024
    growth rate continued, margins held flat) versus the driver-based
    forecast (FY2024 data + adidas's stated FY2025 guidance), both checked
-   against FY2025 actuals. See Key finding above.
-4. **Scenario** (`src/scenario.py`) — Monte Carlo over adidas's own
-   disclosed guidance ranges (not historical volatility — see Key finding).
+   against FY2025 actuals. Surfaced on the Evidence screen, with its own
+   caveats attached.
+4. **Scenario** (`src/scenario.py`) — Monte Carlo over each client's
+   declared ranges — for adidas, its own disclosed guidance bands rather than
+   historical volatility.
    Reports which assumption's variance explains the most FCF variance.
 5. **Commentary** (`src/commentary.py`) — an LLM writes management
    commentary from the backtest's output table only, never from raw source
@@ -305,62 +314,117 @@ discloses.
    against that table; a live run scored a 100% grounding rate (15/15
    claims), reported alongside the forecast rather than assumed.
 6. **Report** (`src/report.py`) — writes `RESULTS.md` and the Monte Carlo
-   chart above from the backtest and scenario outputs. Generated, not
+   chart from the backtest and scenario outputs. Generated, not
    hand-edited, so its claims always match the last run.
 
-## Stack
 
-`Python` · `NumPy` · `pypdf` · `LLM API` · `pytest` · `FastAPI` · `Next.js` · `TypeScript`
+## Architecture
 
-## Repository map
+```text
+CLIENT DATA  ──►  DATA MAPPING  ──►  CLIENT CONFIGURATION
+                                            │
+                          DRIVER / KPI TREE ┘
+                                  │
+                    DETERMINISTIC FINANCIAL MODEL
+                                  │
+                    SCENARIOS + UNCERTAINTY
+                                  │
+                       MATERIALITY ENGINE
+                                  │
+                         DECISION RULES
+                                  │
+                     MANAGEMENT PRIORITIES
+                                  │
+                      GROUNDED COMMENTARY
+```
 
-| path | responsibility |
+| Layer | Where |
 |---|---|
-| `src/config.py` | company/fiscal-year scope, paths, env vars |
-| `src/extract.py` | parse financials, division/channel splits and guidance out of the source PDFs |
-| `src/model.py` | driver-based forecast: facts + assumptions → EBITDA/FCF |
-| `src/backtest.py` | driver-based vs. naive forecast, checked against actuals |
-| `src/scenario.py` | Monte Carlo over adidas's disclosed guidance ranges |
-| `src/drivers.py` | single source of truth for the cockpit's 5 driver controls (default, range, guidance, confidence) |
-| `src/commentary.py` | grounded LLM commentary + numeric verification |
-| `src/report.py` | generates `RESULTS.md` and `data/monte_carlo_fcf.png` |
-| `api/` | FastAPI layer exposing the model as JSON — no forecasting logic of its own |
-| `web/` | Next.js Interactive FP&A Decision Cockpit (4 views) |
-| `data/raw/` | source PDFs (not committed — see `data/raw/README.md`) |
-| `data/facts/adidas_drivers.json` | extracted, structured driver data (committed — small, fully derived) |
-| `RESULTS.md` | generated readout (committed — never hand-edited) |
-| `tests/` | extraction, model, backtest, scenario, grounding, report and API-reproducibility checks |
+| Client packs and the resolver vocabulary | `src/clientpack.py`, `clients/*` |
+| Deterministic forecast | `src/model.py` |
+| Backtest against actuals | `src/backtest.py` |
+| Scenarios and Monte Carlo | `src/scenario.py` |
+| Three-axis materiality engine | `src/materiality.py` |
+| Decision rules and the executive brief | `src/decisions.py` |
+| Grounded commentary and its verifiers | `src/commentary.py`, `src/claims.py` |
+| API over all of it | `api/service.py`, `api/main.py` |
+| Interface | `web/` (Next.js, CSS Modules, hand-rolled SVG charts) |
+
+The data mapping layer is a documented contract
+(`Date · Entity · Business Unit · Region · Account · Metric · Actual · Budget ·
+Forecast`) plus per-client account mappings. **No ERP or EPM connector is
+implemented and none is planned** — a fake SAP integration would be theatre.
+What is real is the shape the mapping would take.
+
+### The interface
+
+Five destinations: **Outlook** (what needs attention), **Priorities** (the
+ranking and the rule that produced it), **Planner** (if this assumption moves,
+what decision follows), **Model** (how this business creates financial
+outcomes), **Evidence** (backtest, simulation, lineage, limits).
+
+The active planning model is a query parameter, so a link to a specific
+client's priorities is shareable. Switching changes drivers, KPIs, currency,
+labels, scenarios, thresholds, rules, ranking and commentary with no
+application code involved.
 
 ## Run it
 
 ```bash
-python3 -m venv .venv && source .venv/bin/activate
-make install
-make test                 # extraction/backtest/scenario tests skip gracefully without the PDFs
-
-cp .env.example .env      # Anthropic key, needed only for src/commentary.py
-# place the two Adidas PDFs in data/raw/ — see data/raw/README.md
-make extract               # -> data/facts/adidas_drivers.json
-make backtest               # -> naive vs. driver-based forecast, checked against actuals
-make scenario               # -> Monte Carlo + sensitivity ranking
-make report                 # -> RESULTS.md + data/monte_carlo_fcf.png
-python -m src.commentary    # -> grounded management commentary (needs .env)
+python3 -m venv .venv && .venv/bin/python -m pip install -r requirements-dev.txt
+make test                    # 205 tests
+make api                     # FastAPI on :8000
+make web                     # Next.js on :3000
 ```
 
-## What this is not
+```bash
+.venv/bin/python -m pytest tests/ -q
+cd web && npm run lint && npm run build && npx tsc --noEmit
+```
 
-- **A multi-company benchmark.** One company, two driver dimensions
-  (product division, channel), three fiscal years — depth over breadth,
-  matching the rest of this portfolio.
-- **A price/volume analysis.** adidas doesn't disclose that split; see
-  "The company" above. Product division and channel growth are the real
-  drivers used here, not a proxy for price/volume.
-- **A track record.** One backtest point (FY2024 → FY2025). A single win
-  is not evidence the driver-based approach generalizes; it's evidence it
-  beat one naive baseline once, on data available at the time.
-- **A trading or investment signal.** This is a methodology exercise on
-  public financial disclosures, not analysis intended to inform an
-  investment decision.
+`npx tsc --noEmit` must run *after* `npm run build`: `LayoutProps` is a Next 16
+generated global that only exists once `.next/types` has been written.
+
+The adidas facts are committed; the source PDFs are not (see
+`data/raw/README.md`). Commentary needs a provider key and degrades to
+committed preset text without one — the product is fully usable with the LLM
+switched off, which is the point.
+
+## Limitations
+
+Read these before drawing conclusions from anything above.
+
+- **One backtest point.** Three fiscal years supports exactly one honest
+  forecast-versus-actual comparison. Beating a naive baseline once is not a
+  track record.
+- **Exposures are one-at-a-time.** Each driver is swung with the others held
+  at plan, so interaction effects are not captured. The FCF bridge carries the
+  same limitation and says so.
+- **Two of three ranking axes are declared judgements.** They are auditable in
+  the client pack, but they are opinions, and a different reviewer would set
+  some of them differently.
+- **Monte Carlo ranges are disclosed guidance bands, not measured
+  volatility.** Estimating volatility from two year-over-year observations
+  would look precise and carry almost no information.
+- **The verifier is blind to near-misses.** A real value drifted 1–4% passes
+  every check. See the table above — this is structural, not a tuning problem.
+- **Priority categories are an ordering device for attention**, not a
+  probability, a risk score, or a claim about what will happen.
+- **The manufacturing client is invented.** Every figure in it was constructed
+  to be internally consistent and plausible. None of it is evidence about
+  anything.
+- **Currency formatting assumes euros.** Both packs are EUR; a
+  non-euro client would need the formatter parameterised.
+
+## Positioning
+
+A personal portfolio prototype, built to support conversations about
+driver-based planning, scenario analysis, management reporting and CFO
+decision support. Not affiliated with, endorsed by, or derived from any
+employer's proprietary methods or assets, and not affiliated with adidas AG.
+Not investment advice.
+
+
 
 ---
 

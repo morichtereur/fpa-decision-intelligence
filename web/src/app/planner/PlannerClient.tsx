@@ -225,7 +225,7 @@ export default function PlannerClient({
             <BridgeChart steps={scenario.bridge} />
           </section>
 
-          <section className={styles.block}>
+          <div className={styles.block}>
             <CommentaryPanel
               commentary={commentary}
               loading={commentaryLoading}
@@ -233,7 +233,7 @@ export default function PlannerClient({
               onGenerate={handleGenerateCommentary}
               canGenerate={true}
             />
-          </section>
+          </div>
         </div>
       </div>
     </div>
