@@ -268,3 +268,32 @@ export interface DecisionBriefResponse {
   };
   methodology: Methodology;
 }
+
+export interface VarianceStep {
+  driver_id: string;
+  label: string;
+  unit: string;
+  forecast_value: number;
+  actual_value: number;
+  impact: number;
+  share_of_variance_pct: number | null;
+  source: string;
+}
+
+export interface VarianceBridgeResponse {
+  client: string;
+  metric: string;
+  forecast: number;
+  actual: number;
+  total_variance: number;
+  explained_by_drivers: number;
+  residual: number;
+  gross_driver_movement: number;
+  /** Set when a small net variance is built from large opposing driver
+   *  errors — a materially different finding from an accurate forecast. */
+  offsetting_note: string | null;
+  residual_note: string;
+  order_note: string;
+  waterfall: BridgeStep[];
+  steps: VarianceStep[];
+}

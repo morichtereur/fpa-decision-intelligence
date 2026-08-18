@@ -20,7 +20,8 @@ from functools import lru_cache
 
 import numpy as np
 
-from src import backtest, claims, clientpack, commentary, config as C, decisions, materiality, model, scenario
+from src import (backtest, claims, clientpack, commentary, config as C, decisions,
+                 materiality, model, scenario, variance)
 
 
 def pack(client: str | None = None) -> clientpack.ClientPack:
@@ -352,6 +353,24 @@ def get_decision_brief(driver_values: dict | None = None, client: str | None = N
     if driver_values is not None:
         validate_driver_values(driver_values, client)
     return decisions.brief(p, driver_values)
+
+
+@lru_cache(maxsize=32)
+def get_variance_bridge(metric: str = "free_cash_flow", client: str | None = None) -> dict | None:
+    """Why the forecast missed, decomposed across the drivers.
+
+    None where the client has no outturn to bridge against — the same honesty
+    as get_backtest(). A bridge from a forecast to invented actuals would look
+    like a finding and be none.
+    """
+    p = pack(client)
+    if not variance.is_available(p):
+        return None
+    return variance.bridge(p, metric)
+
+
+def variance_available(client: str | None = None) -> bool:
+    return variance.is_available(pack(client))
 
 
 def get_decision_rules(client: str | None = None) -> list[dict]:

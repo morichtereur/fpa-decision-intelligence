@@ -128,6 +128,19 @@ def decision_brief_for_scenario(req: ScenarioRequest):
     return service.get_decision_brief(req.driver_values, client)
 
 
+@app.get("/api/variance/{metric}")
+def variance_bridge(metric: str = "free_cash_flow", client: str | None = ClientQuery):
+    """Forecast-to-actual variance, decomposed across the client's drivers.
+
+    404 for an unknown metric; null for a client with no actuals, which the
+    interface renders as an explanation rather than an empty chart."""
+    resolved = _client(client)
+    try:
+        return service.get_variance_bridge(metric, resolved)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
 @app.get("/api/decision-rules")
 def decision_rules(client: str | None = ClientQuery):
     return service.get_decision_rules(_client(client))

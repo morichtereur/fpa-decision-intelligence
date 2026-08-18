@@ -12,6 +12,18 @@
 # planning horizon. Both are stated here so the reasoning is auditable
 # rather than implied by a slider's position.
 
+# Substitution order for the forecast-to-actual variance bridge. Revenue
+# first, because every other driver is applied to a revenue base; then the
+# income-statement drivers; then cash. This is the order a P&L-to-cash-flow
+# bridge is read in, and it is stated rather than tuned to make a particular
+# driver look decisive.
+variance_order:
+  - revenue_growth
+  - ebitda_margin
+  - tax_rate_pct
+  - working_capital_pct
+  - capex_eur_m
+
 order:
   - revenue_growth
   - ebitda_margin
@@ -30,6 +42,10 @@ drivers:
     max: 15.0
     step: 0.5
     maps_to: "division_growth"
+    realised:
+      from: growth_rate
+      args: ["group.2024.net_sales", "group.2025.net_sales"]
+      source: "FY2025 net sales over FY2024 net sales, as reported"
     sensitivity_key: "growth"
     scale: 0.01                # the model wants a fraction, the UI shows a percentage
     impacts: ["revenue", "operating_profit", "free_cash_flow"]
@@ -67,6 +83,10 @@ drivers:
     step: 0.1
     exposure_range: {low: 11.0, high: 12.2}   # no disclosed margin band; +/-0.6ppt around the guidance-implied plan
     maps_to: "ebitda_margin_pct"
+    realised:
+      from: ratio
+      args: ["group.2025.ebitda", "group.2025.net_sales"]
+      source: "FY2025 EBITDA over FY2025 net sales, as reported"
     sensitivity_key: "operating_profit_target"
     impacts: ["operating_profit", "free_cash_flow"]
     guidance_text: >-
@@ -93,6 +113,10 @@ drivers:
     step: 0.5
     exposure_range: {low: 21.0, high: 23.5}   # guided 21-22%, extended to 23.5 because FY2025 actual came in at 23.0
     maps_to: "operating_working_capital_pct"
+    realised:
+      from: fact
+      args: ["group.2025.operating_working_capital_pct"]
+      source: "FY2025 operating working capital as a percentage of net sales, as disclosed"
     sensitivity_key: "working_capital_pct"
     impacts: ["free_cash_flow"]
     guidance:
@@ -118,6 +142,10 @@ drivers:
     step: 10
     exposure_range: {low: 570, high: 630}   # +/-5% around the guided point figure, matching the simulation
     maps_to: "capex_eur_m"
+    realised:
+      from: fact
+      args: ["group.2025.capex"]
+      source: "FY2025 capital expenditure, as reported"
     sensitivity_key: "capex"
     impacts: ["free_cash_flow"]
     guidance_text: "adidas FY2025 guidance: around €600m"
@@ -137,6 +165,10 @@ drivers:
     step: 0.5
     exposure_range: {low: 24.0, high: 28.0}   # no guidance; band around recent actual rates (24.3-26.5)
     maps_to: "effective_tax_rate_pct"
+    realised:
+      from: fact
+      args: ["group.2025.effective_tax_rate_pct"]
+      source: "FY2025 effective tax rate, as reported"
     sensitivity_key: null
     impacts: ["free_cash_flow"]
     guidance_text: >-

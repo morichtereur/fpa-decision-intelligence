@@ -1,25 +1,8 @@
 "use client";
 
 import type { DriverSpec } from "@/lib/types";
-import { formatPct } from "@/lib/format";
+import { formatDriverValue } from "@/lib/format";
 import styles from "./DriverControl.module.css";
-
-/** Driver units are per client. A manufacturer plans working capital in days
- *  and input costs in points against plan; a branded business plans the same
- *  cash in a single percentage of sales. `ppt` carries an explicit sign
- *  because it is always a movement, never a level. */
-function formatValue(value: number, unit: DriverSpec["unit"]) {
-  switch (unit) {
-    case "pct":
-      return formatPct(value);
-    case "days":
-      return `${value.toFixed(0)} days`;
-    case "ppt":
-      return `${value > 0 ? "+" : value < 0 ? "−" : ""}${Math.abs(value).toFixed(2)}pp`;
-    default:
-      return `€${Math.round(value)}m`;
-  }
-}
 
 export default function DriverControl({
   driverId,
@@ -50,12 +33,12 @@ export default function DriverControl({
       <div className={styles.valueRow}>
         {changed ? (
           <span className={`mono ${styles.valueChange}`}>
-            <span className={styles.valueBase}>{formatValue(spec.default, spec.unit)}</span>
+            <span className={styles.valueBase}>{formatDriverValue(spec.default, spec.unit)}</span>
             <span className={styles.arrow}>→</span>
-            <span className={styles.valueNew}>{formatValue(value, spec.unit)}</span>
+            <span className={styles.valueNew}>{formatDriverValue(value, spec.unit)}</span>
           </span>
         ) : (
-          <span className={`mono ${styles.valueStatic}`}>{formatValue(value, spec.unit)}</span>
+          <span className={`mono ${styles.valueStatic}`}>{formatDriverValue(value, spec.unit)}</span>
         )}
         {changed && (
           <button type="button" className={styles.resetOne} onClick={() => onChange(driverId, spec.default)}>

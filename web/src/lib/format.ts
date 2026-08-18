@@ -49,3 +49,24 @@ export function deltaDirection(value: number, invert = false): DeltaDirection {
   const positive = invert ? value < 0 : value > 0;
   return positive ? "positive" : "negative";
 }
+
+/**
+ * A driver's own value, in its own unit.
+ *
+ * Units are per client: a manufacturer plans working capital in days and input
+ * costs in points against plan, where a branded business plans the same cash
+ * as a single percentage of sales. `ppt` always carries a sign because it is
+ * a movement, never a level.
+ */
+export function formatDriverValue(value: number, unit: string): string {
+  switch (unit) {
+    case "days":
+      return `${value.toFixed(0)} days`;
+    case "ppt":
+      return `${value > 0 ? "+" : value < 0 ? "\u2212" : ""}${Math.abs(value).toFixed(2)}pp`;
+    case "eur_m":
+      return formatEur(value);
+    default:
+      return formatPct(value);
+  }
+}

@@ -11,6 +11,7 @@ import type {
   OutlookResponse,
   PresetsResponse,
   PrioritiesResponse,
+  VarianceBridgeResponse,
   ScenarioResponse,
 } from "./types";
 
@@ -60,6 +61,8 @@ export const api = {
   monteCarlo: (c?: ClientId) => request<MonteCarloResponse>(scoped("/api/monte-carlo", c)),
   assumptions: (c?: ClientId) => request<AssumptionRow[]>(scoped("/api/assumptions", c)),
   priorities: (c?: ClientId) => request<PrioritiesResponse>(scoped("/api/priorities", c)),
+  variance: (metric = "free_cash_flow", c?: ClientId) =>
+    request<VarianceBridgeResponse | null>(scoped(`/api/variance/${metric}`, c)),
   decisionBrief: (c?: ClientId) => request<DecisionBriefResponse>(scoped("/api/decision-brief", c)),
   decisionBriefFor: (driverValues: DriverValues, c?: ClientId) =>
     request<DecisionBriefResponse>("/api/decision-brief", {

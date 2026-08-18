@@ -16,7 +16,12 @@ export default function BridgeChart({ steps }: { steps: BridgeStep[] }) {
   return (
     <div className={styles.chart}>
       {steps.map((step, i) => {
-        const isEndpoint = step.label === "Base" || step.label === "Scenario";
+        // An endpoint is a step with no delta — that is what the data means,
+        // and it is true of both bridges fed to this component. Matching the
+        // labels instead ("Base"/"Scenario") silently collapsed the variance
+        // bridge's closing "Actual" bar to nothing, because its endpoints are
+        // called something else.
+        const isEndpoint = step.delta === null;
         const prevValue = i > 0 ? steps[i - 1].value : 0;
         const segStart = isEndpoint ? 0 : Math.min(prevValue, step.value);
         const segEnd = isEndpoint ? step.value : Math.max(prevValue, step.value);

@@ -158,3 +158,13 @@
 .moreLink:hover {
   color: var(--color-accent-hover);
 }
+
+/* The offsetting finding contradicts the comfortable reading of a small
+   variance, so it is set apart from the intro rather than buried in it. */
+.offsetting {
+  max-width: 64ch;
+  margin: 0 0 var(--space-5);
+  padding-left: var(--space-4);
+  border-left: 2px solid var(--color-negative);
+  font-size: var(--text-sm);
+}

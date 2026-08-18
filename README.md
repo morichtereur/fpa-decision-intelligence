@@ -104,6 +104,25 @@ Three independent implementations are cross-checked in
 implementation it replaced, and the backtest computing the same forecast from
 raw facts. They agree to 1e-12.
 
+### Why the forecast missed, not just by how much
+
+The backtest reports the size of the miss. `src/variance.py` walks each driver
+from what was forecast to what was reported, one at a time, and attributes the
+movement — the second question, and the one that changes what anyone does.
+
+Two things keep it honest. It **carries a residual**: substituting every
+realised driver does not reproduce actual exactly, and whatever is left is a
+row on the chart rather than absorbed into the last step. A bridge that always
+closes to zero is hiding something. And it **flags offsetting errors**: for
+adidas, free cash flow missed by only €37m, but that nets €808m of gross
+driver movement. Every assumption behind the forecast was wrong and they
+cancelled — a materially different finding from a forecast that was accurate,
+and one a headline error rate conceals.
+
+Realised values are read from reported figures declared in the client pack,
+never back-solved to make the bridge close. A client with no outturn gets no
+bridge rather than one drawn against invented actuals.
+
 ## Decision materiality
 
 The ranking that answers *where should management spend its next 30 minutes*
@@ -343,6 +362,7 @@ CLIENT DATA  ──►  DATA MAPPING  ──►  CLIENT CONFIGURATION
 | Client packs and the resolver vocabulary | `src/clientpack.py`, `clients/*` |
 | Deterministic forecast | `src/model.py` |
 | Backtest against actuals | `src/backtest.py` |
+| Forecast-to-actual variance bridge | `src/variance.py` |
 | Scenarios and Monte Carlo | `src/scenario.py` |
 | Three-axis materiality engine | `src/materiality.py` |
 | Decision rules and the executive brief | `src/decisions.py` |
@@ -372,7 +392,7 @@ application code involved.
 
 ```bash
 python3 -m venv .venv && .venv/bin/python -m pip install -r requirements-dev.txt
-make test                    # 205 tests
+make test                    # 231 tests
 make api                     # FastAPI on :8000
 make web                     # Next.js on :3000
 ```

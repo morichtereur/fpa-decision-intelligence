@@ -76,8 +76,22 @@ def test_unknown_confidence_or_controllability_is_rejected(pack_dir):
 
 
 def test_order_must_name_every_driver(pack_dir):
-    _edit(pack_dir / "drivers.yaml", "  - working_capital_pct\n", "")
+    # Targets the `order:` block specifically. A bare driver-name replace
+    # would hit `variance_order:` first, which lists the same ids.
+    path = pack_dir / "drivers.yaml"
+    text = path.read_text()
+    head, _, tail = text.partition("\norder:\n")
+    assert tail, "fixture drift: no `order:` block"
+    path.write_text(head + "\norder:\n" + tail.replace("  - working_capital_pct\n", "", 1))
+
     with pytest.raises(clientpack.ClientPackError, match="order"):
+        load(pack_dir)
+
+
+def test_variance_order_may_not_name_an_unknown_driver(pack_dir):
+    _edit(pack_dir / "drivers.yaml", "variance_order:\n  - revenue_growth",
+          "variance_order:\n  - revenue_growth_v2")
+    with pytest.raises(clientpack.ClientPackError, match="variance_order"):
         load(pack_dir)
 
 

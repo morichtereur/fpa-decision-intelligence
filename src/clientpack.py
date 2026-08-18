@@ -247,6 +247,12 @@ class DriverSpec:
     # the model can compute, not of what management considers plausible.
     exposure_range: tuple[float, float] | None = None
 
+    # How this driver's realised value is read out of the facts, for the
+    # forecast-to-actual variance bridge. None where no outturn exists — a
+    # synthetic client has nothing to bridge against, and src/variance.py
+    # refuses rather than inventing one.
+    realised: dict | None = None
+
     def to_dict(self) -> dict:
         """The shape the API and frontend consume. Field names match what the
         inherited UI already reads, so the pack layer is invisible to it."""
@@ -302,6 +308,8 @@ class ClientPack:
     monte_carlo: dict
     assumption_bases: dict = field(default_factory=dict)
     materiality_thresholds: dict = field(default_factory=lambda: {"high": 0.0, "medium": 0.0})
+    # Substitution order for the variance bridge; falls back to driver_order.
+    variance_order: tuple[str, ...] = ()
     decision_rules: tuple[dict, ...] = ()
     mappings: dict = field(default_factory=dict)
     audiences: tuple[str, ...] = ()
@@ -520,6 +528,7 @@ def load_pack(client_id: str, clients_dir: Path | None = None) -> ClientPack:
             role=raw.get("role", "base"),
             sign=float(raw.get("sign", 1.0)),
             sensitivity_key=raw.get("sensitivity_key"),
+            realised=raw.get("realised"),
             exposure_range=(
                 (float(raw["exposure_range"]["low"]), float(raw["exposure_range"]["high"]))
                 if raw.get("exposure_range") else None
@@ -527,6 +536,11 @@ def load_pack(client_id: str, clients_dir: Path | None = None) -> ClientPack:
         )
         _validate_driver(driver_id, spec)
         drivers[driver_id] = spec
+
+    variance_order = tuple(drivers_doc.get("variance_order") or ())
+    unknown_variance = [d for d in variance_order if d not in drivers]
+    if unknown_variance:
+        raise ClientPackError(f"drivers.yaml `variance_order` names unknown driver(s): {unknown_variance}")
 
     order = tuple(drivers_doc.get("order") or drivers.keys())
     unknown = [d for d in order if d not in drivers]
@@ -561,6 +575,7 @@ def load_pack(client_id: str, clients_dir: Path | None = None) -> ClientPack:
         presets=scenarios.get("presets") or {},
         monte_carlo=scenarios.get("monte_carlo") or {},
         materiality_thresholds=_materiality_thresholds(client_id, client),
+        variance_order=tuple(drivers_doc.get("variance_order") or ()),
         assumption_bases={
             key: resolve_scalar(facts, spec)
             for key, spec in (drivers_doc.get("assumption_bases") or {}).items()

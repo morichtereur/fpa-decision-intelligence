@@ -3,6 +3,7 @@ import { api } from "@/lib/api";
 import { clientFrom, withClient, type SearchParams } from "@/lib/client";
 import { formatEur } from "@/lib/format";
 import BacktestBars from "@/components/BacktestBars";
+import VarianceBridge from "@/components/VarianceBridge";
 import MonteCarloChart from "@/components/MonteCarloChart";
 import styles from "./forecast-risk.module.css";
 
@@ -24,10 +25,11 @@ export default async function ForecastRiskPage({
   searchParams: Promise<SearchParams>;
 }) {
   const client = clientFrom(await searchParams);
-  const [backtest, monteCarlo, summary] = await Promise.all([
+  const [backtest, monteCarlo, summary, variance] = await Promise.all([
     api.backtest(client),
     api.monteCarlo(client),
     api.client(client),
+    api.variance("free_cash_flow", client),
   ]);
 
   return (
@@ -91,6 +93,22 @@ export default async function ForecastRiskPage({
           </div>
         )}
       </section>
+
+      {variance && (
+        <section className={styles.section}>
+          <h2 className={styles.sectionHeading}>Why it missed</h2>
+          <p className={styles.sectionIntro}>
+            The backtest says by how much. This says which assumption was wrong — each driver
+            walked from what was forecast to what was reported, one at a time, with whatever the
+            drivers do not explain left visible as a residual rather than absorbed into the last
+            step. {variance.order_note}
+          </p>
+          {variance.offsetting_note && (
+            <p className={styles.offsetting}>{variance.offsetting_note}</p>
+          )}
+          <VarianceBridge bridge={variance} />
+        </section>
+      )}
 
       {backtest && (
         <section className={styles.section}>
