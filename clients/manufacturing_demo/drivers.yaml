@@ -47,6 +47,7 @@ drivers:
     min: -8.0
     max: 12.0
     step: 0.5
+    exposure_range: {low: -2.0, high: 6.0}   # downturn to strong-cycle, synthetic
     maps_to: "division_growth"
     sensitivity_key: "growth"
     role: "base"
@@ -67,6 +68,7 @@ drivers:
     min: -3.0
     max: 8.0
     step: 0.25
+    exposure_range: {low: 0.0, high: 4.0}   # no realised price through to full pass-through, synthetic
     maps_to: "division_growth"
     sensitivity_key: "growth"
     role: "add"
@@ -98,6 +100,7 @@ drivers:
     min: 8.0
     max: 18.0
     step: 0.1
+    exposure_range: {low: 11.4, high: 13.4}   # +/-1ppt around the plan margin, synthetic
     maps_to: "ebitda_margin_pct"
     sensitivity_key: "operating_profit_target"
     role: "base"
@@ -119,6 +122,7 @@ drivers:
     min: -3.0
     max: 6.0
     step: 0.25
+    exposure_range: {low: 0.0, high: 3.0}   # plan through to a three-point input-cost shock, synthetic
     maps_to: "ebitda_margin_pct"
     sensitivity_key: "operating_profit_target"
     role: "delta"
@@ -141,6 +145,7 @@ drivers:
     min: -2.0
     max: 5.0
     step: 0.25
+    exposure_range: {low: 0.0, high: 2.5}   # plan through to contracted pricing lapsing, synthetic
     maps_to: "ebitda_margin_pct"
     sensitivity_key: "operating_profit_target"
     role: "delta"
@@ -161,6 +166,7 @@ drivers:
     min: 50
     max: 95
     step: 1
+    exposure_range: {low: 62, high: 78}   # achievable collection through to observed FY2025 slippage, synthetic
     maps_to: "operating_working_capital_pct"
     sensitivity_key: "working_capital_pct"
     role: "delta"
@@ -182,6 +188,7 @@ drivers:
     min: 80
     max: 145
     step: 1
+    exposure_range: {low: 95, high: 118}   # disciplined through to downturn build, synthetic
     maps_to: "operating_working_capital_pct"
     sensitivity_key: "working_capital_pct"
     role: "delta"
@@ -205,6 +212,7 @@ drivers:
     min: 45
     max: 105
     step: 1
+    exposure_range: {low: 66, high: 78}   # supplier pressure through to extended terms, synthetic
     maps_to: "operating_working_capital_pct"
     sensitivity_key: "working_capital_pct"
     role: "delta"
@@ -228,6 +236,7 @@ drivers:
     min: 70
     max: 170
     step: 5
+    exposure_range: {low: 105, high: 130}   # plan through to a capacity-project overrun, synthetic
     maps_to: "capex_eur_m"
     sensitivity_key: "capex"
     role: "base"
@@ -249,6 +258,7 @@ drivers:
     min: 20.0
     max: 35.0
     step: 0.5
+    exposure_range: {low: 26.0, high: 30.0}   # band around recent effective rates, synthetic
     maps_to: "effective_tax_rate_pct"
     sensitivity_key: null
     role: "base"

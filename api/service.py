@@ -20,7 +20,7 @@ from functools import lru_cache
 
 import numpy as np
 
-from src import backtest, claims, clientpack, commentary, config as C, model, scenario
+from src import backtest, claims, clientpack, commentary, config as C, decisions, materiality, model, scenario
 
 
 def pack(client: str | None = None) -> clientpack.ClientPack:
@@ -333,6 +333,25 @@ def get_assumption_register(client: str | None = None) -> list[dict]:
         }
         for driver_id in p.driver_order
     ]
+
+
+@lru_cache(maxsize=8)
+def get_priorities(client: str | None = None) -> dict:
+    """The three-axis ranking plus the methodology that produced it.
+
+    The methodology travels with the ranking rather than living on a separate
+    page: a reader who wants to challenge the order should not have to go
+    looking for the rule that produced it.
+    """
+    p = pack(client)
+    return {"ranked": materiality.rank(p), "methodology": materiality.methodology(p)}
+
+
+def get_decision_brief(driver_values: dict | None = None, client: str | None = None) -> dict:
+    p = pack(client)
+    if driver_values is not None:
+        validate_driver_values(driver_values, client)
+    return decisions.brief(p, driver_values)
 
 
 def get_decision_rules(client: str | None = None) -> list[dict]:

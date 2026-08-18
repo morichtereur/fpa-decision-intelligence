@@ -110,6 +110,24 @@ def client_summary(client: str | None = ClientQuery):
     return service.get_client_summary(_client(client))
 
 
+@app.get("/api/priorities")
+def priorities(client: str | None = ClientQuery):
+    return service.get_priorities(_client(client))
+
+
+@app.get("/api/decision-brief")
+def decision_brief(client: str | None = ClientQuery):
+    """The base-case brief. For a scenario's brief, POST /api/decision-brief."""
+    return service.get_decision_brief(None, _client(client))
+
+
+@app.post("/api/decision-brief")
+def decision_brief_for_scenario(req: ScenarioRequest):
+    client = _client(req.client)
+    _validate(req.driver_values, client)
+    return service.get_decision_brief(req.driver_values, client)
+
+
 @app.get("/api/decision-rules")
 def decision_rules(client: str | None = ClientQuery):
     return service.get_decision_rules(_client(client))

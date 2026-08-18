@@ -241,6 +241,12 @@ class DriverSpec:
     # rather than silently scored zero.
     sensitivity_key: str | None = None
 
+    # The range this driver is swung across to size its euro exposure. Falls
+    # back to the disclosed guidance range when the client published one. The
+    # slider's min/max is deliberately never used: those are the bounds of what
+    # the model can compute, not of what management considers plausible.
+    exposure_range: tuple[float, float] | None = None
+
     def to_dict(self) -> dict:
         """The shape the API and frontend consume. Field names match what the
         inherited UI already reads, so the pack layer is invisible to it."""
@@ -263,6 +269,7 @@ class DriverSpec:
             "impacts": list(self.impacts),
             "role": self.role,
             "sensitivity_key": self.sensitivity_key,
+            "exposure_range": list(self.exposure_range) if self.exposure_range else None,
         }
 
 
@@ -290,6 +297,7 @@ class ClientPack:
     presets: dict
     monte_carlo: dict
     assumption_bases: dict = field(default_factory=dict)
+    materiality_thresholds: dict = field(default_factory=lambda: {"high": 0.0, "medium": 0.0})
     decision_rules: tuple[dict, ...] = ()
     mappings: dict = field(default_factory=dict)
     audiences: tuple[str, ...] = ()
@@ -401,6 +409,27 @@ def _read_yaml(path: Path) -> dict:
     return yaml.safe_load(path.read_text()) or {}
 
 
+def _materiality_thresholds(client_id: str, client: dict) -> dict:
+    """Euro bands for High / Medium exposure. Required, and per client:
+    materiality is relative to the size of the business, and a shared default
+    would quietly rank a EUR 1.9bn manufacturer against a EUR 24bn brand's
+    yardstick."""
+    raw = client.get("materiality_thresholds") or {}
+    missing = {"high", "medium"} - set(raw)
+    if missing:
+        raise ClientPackError(
+            f"Client {client_id!r} must declare materiality_thresholds with "
+            f"`high` and `medium` (missing: {sorted(missing)})"
+        )
+    high, medium = float(raw["high"]), float(raw["medium"])
+    if not high > medium > 0:
+        raise ClientPackError(
+            f"Client {client_id!r} materiality_thresholds must satisfy high > medium > 0, "
+            f"got high={high}, medium={medium}"
+        )
+    return {"high": high, "medium": medium}
+
+
 def _validate_driver(driver_id: str, spec: DriverSpec) -> None:
     if spec.maps_to not in MODEL_ASSUMPTION_KEYS:
         raise ClientPackError(
@@ -415,6 +444,20 @@ def _validate_driver(driver_id: str, spec: DriverSpec) -> None:
         raise ClientPackError(
             f"Driver {driver_id!r} baseline {spec.default} falls outside its own "
             f"range [{spec.min}, {spec.max}] — the slider could not show it"
+        )
+    if spec.exposure_range is not None:
+        low, high = spec.exposure_range
+        if low >= high:
+            raise ClientPackError(f"Driver {driver_id!r} exposure_range needs low < high, got {low}/{high}")
+        if low < spec.min or high > spec.max:
+            raise ClientPackError(
+                f"Driver {driver_id!r} exposure_range [{low}, {high}] falls outside the model's own "
+                f"domain [{spec.min}, {spec.max}] — the forecast is not defined there"
+            )
+    elif spec.guidance_low is None or spec.guidance_high is None:
+        raise ClientPackError(
+            f"Driver {driver_id!r} has neither an exposure_range nor a disclosed guidance range, "
+            f"so its financial exposure cannot be sized. Declare one."
         )
     if spec.role not in ("base", "add", "delta"):
         raise ClientPackError(f"Driver {driver_id!r} has role {spec.role!r} (want base, add or delta)")
@@ -473,6 +516,10 @@ def load_pack(client_id: str, clients_dir: Path | None = None) -> ClientPack:
             role=raw.get("role", "base"),
             sign=float(raw.get("sign", 1.0)),
             sensitivity_key=raw.get("sensitivity_key"),
+            exposure_range=(
+                (float(raw["exposure_range"]["low"]), float(raw["exposure_range"]["high"]))
+                if raw.get("exposure_range") else None
+            ),
         )
         _validate_driver(driver_id, spec)
         drivers[driver_id] = spec
@@ -509,6 +556,7 @@ def load_pack(client_id: str, clients_dir: Path | None = None) -> ClientPack:
         baseline_group_path=client["baseline_group_path"],
         presets=scenarios.get("presets") or {},
         monte_carlo=scenarios.get("monte_carlo") or {},
+        materiality_thresholds=_materiality_thresholds(client_id, client),
         assumption_bases={
             key: resolve_scalar(facts, spec)
             for key, spec in (drivers_doc.get("assumption_bases") or {}).items()

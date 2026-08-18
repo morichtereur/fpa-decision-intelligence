@@ -43,3 +43,11 @@ disclaimer: >-
   affiliated with or endorsed by adidas AG.
 
 has_backtest: true
+
+# Euro bands for High / Medium financial exposure, in the reporting unit.
+# adidas FY2025 free cash flow models around EUR 1.07bn on EUR 25.6bn of revenue.
+# EUR 150m is roughly 14% of that cash flow -- a number that would change the
+# capital allocation conversation. EUR 60m is where it becomes worth a review.
+materiality_thresholds:
+  high: 150
+  medium: 60

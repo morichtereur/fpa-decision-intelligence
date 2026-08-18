@@ -44,3 +44,16 @@ disclaimer: >-
 # No backtest. A backtest on invented data would prove nothing, and
 # presenting one would be worse than having none.
 has_backtest: false
+
+# Euro bands for High / Medium financial exposure, in the reporting unit.
+# Free cash flow of roughly EUR 81m on EUR 1.9bn of revenue.
+#
+# These are NOT scaled from adidas's by revenue. A manufacturer's working
+# capital swings much harder against its own cash flow -- twenty inventory
+# days is over EUR 100m here -- so a proportionally-scaled band put six of ten
+# drivers into Act and ranked nothing. Thresholds are set where they actually
+# separate this client's exposures: EUR 60m is most of a year's free cash
+# flow, EUR 25m is a real but absorbable hit.
+materiality_thresholds:
+  high: 60
+  medium: 25

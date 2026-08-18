@@ -65,6 +65,7 @@ drivers:
     min: 8.0
     max: 16.0
     step: 0.1
+    exposure_range: {low: 11.0, high: 12.2}   # no disclosed margin band; +/-0.6ppt around the guidance-implied plan
     maps_to: "ebitda_margin_pct"
     sensitivity_key: "operating_profit_target"
     impacts: ["operating_profit", "free_cash_flow"]
@@ -90,6 +91,7 @@ drivers:
     min: 18.0
     max: 26.0
     step: 0.5
+    exposure_range: {low: 21.0, high: 23.5}   # guided 21-22%, extended to 23.5 because FY2025 actual came in at 23.0
     maps_to: "operating_working_capital_pct"
     sensitivity_key: "working_capital_pct"
     impacts: ["free_cash_flow"]
@@ -114,6 +116,7 @@ drivers:
     min: 400
     max: 700
     step: 10
+    exposure_range: {low: 570, high: 630}   # +/-5% around the guided point figure, matching the simulation
     maps_to: "capex_eur_m"
     sensitivity_key: "capex"
     impacts: ["free_cash_flow"]
@@ -132,6 +135,7 @@ drivers:
     min: 20.0
     max: 30.0
     step: 0.5
+    exposure_range: {low: 24.0, high: 28.0}   # no guidance; band around recent actual rates (24.3-26.5)
     maps_to: "effective_tax_rate_pct"
     sensitivity_key: null
     impacts: ["free_cash_flow"]
