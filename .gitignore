@@ -18,3 +18,7 @@ node_modules/
 
 # Local dev server config — ports differ per machine.
 .claude/launch.json
+
+# macOS/sync duplicates ("file 2.png"). They appear without being asked for
+# and are never wanted in the repository.
+*[[:space:]][0-9].*

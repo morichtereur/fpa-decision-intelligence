@@ -1,16 +1,23 @@
-# Render blueprint for the API half of the cockpit.
+# Render blueprint for the API half of the accelerator.
 #
 # The frontend deploys separately (Vercel, root directory `web/`) and reaches
 # this service through NEXT_PUBLIC_API_BASE. Two hosts rather than one because
 # each side then runs on its platform's default path — no custom build config
 # on either.
 #
-# ANTHROPIC_API_KEY is deliberately not set here: preset commentary is served
-# from the committed data/commentary.json, and /api/commentary/live returns a
-# clear 503 instead of exposing a billable endpoint to the open internet.
+# The API is stateful in one useful way: forecasts, the Monte Carlo and the
+# materiality ranking are cached per client in a long-lived process. A
+# serverless deployment would recompute them per invocation. That is the
+# reason for a web service here rather than functions.
+#
+# No LLM key is set. Preset commentary is served from the committed
+# data/commentary.json, and /api/commentary/live returns a clear 503 rather
+# than exposing a billable endpoint to the open internet. Set ANTHROPIC_API_KEY
+# (or BEDROCK_*) in the Render dashboard only if you want live commentary, and
+# only with a spend cap on the key.
 services:
   - type: web
-    name: fpa-decision-model-api
+    name: fpa-decision-intelligence-api
     runtime: python
     plan: free
     buildCommand: pip install -r requirements.txt
@@ -20,5 +27,8 @@ services:
       - key: PYTHON_VERSION
         value: "3.12"
       - key: CORS_ORIGINS
-        # Replace with the deployed frontend origin once Vercel assigns it.
-        value: https://fpa-decision-model.vercel.app
+        # Set to the Vercel origin once it is assigned. Vercel preview
+        # deployments get their own subdomains, which CORS_ORIGIN_REGEX covers.
+        value: https://fpa-decision-intelligence.vercel.app
+      - key: CORS_ORIGIN_REGEX
+        value: ^https://fpa-decision-intelligence-.*\.vercel\.app$

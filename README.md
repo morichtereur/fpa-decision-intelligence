@@ -4,6 +4,8 @@
 into quantified financial exposures, ranked management priorities and
 traceable actions.**
 
+![The executive decision brief](docs/outlook.png)
+
 ## The problem
 
 FP&A review cycles reliably produce analysis. They much less reliably produce
@@ -159,6 +161,8 @@ ranking sends management straight at the largest uncertain exposure even when
 nothing can be done about it inside the year. Ranking it *Monitor* is a
 deliberate statement: attention is a budget, and it should be spent where it
 converts into an outcome.
+
+![Priorities, ranked by materiality, uncertainty and controllability](docs/priorities.png)
 
 It is visible in the output. For adidas, the effective tax rate carries €70m
 of exposure and ranks **Monitor**, sitting above capex at €60m ranked
