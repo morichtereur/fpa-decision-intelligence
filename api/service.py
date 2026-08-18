@@ -166,7 +166,7 @@ def build_executive_statement(client: str | None = None) -> dict:
         f"{p.currency_symbol}{bt['actual']['operating_profit']:,.0f}m actual).",
         f"{top['label']} shows {top['sensitivity'].lower()} sensitivity to free cash flow "
         f"({top['confidence'].lower()} confidence assumption).",
-        "Naive extrapolation would have missed by more on every metric — see Forecast & Risk.",
+        "Naive extrapolation would have missed by more on every metric — see Evidence.",
     ]
     return {"headline": headline, "evidence": evidence}
 

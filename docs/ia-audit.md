@@ -267,7 +267,7 @@ this cell, with the full band table reachable from the Priorities screen.
 | F3 — Outlook led with evidence | Outlook opens with the Decision Brief; backtest moved below |
 | F4 — nav ordinals implied a sequence | Dropped |
 | F5 — client identity hardcoded in chrome | The wordmark subtitle is now the model selector |
-| F6 — `/model` served two audiences | Partly. Model is client-driven and Evidence carries the credibility material, but the split is not yet clean |
+| F6 — `/model` served two audiences | **Done.** Lineage and disclaimers moved to Evidence; Model gained the data-mapping register. `/forecast-risk` renamed `/evidence`, old path redirects |
 | F7 — Planner ended at a number | Consequence panel: thresholds crossed, priority, question, owner, trigger |
 | F8 — things to preserve | Vintage empty state, "what this is not", out-of-guidance flagging and the grounding/coherence split all survive |
 

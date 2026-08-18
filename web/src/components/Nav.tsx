@@ -15,7 +15,7 @@ const ITEMS = [
   { href: "/", label: "Outlook" },
   { href: "/priorities", label: "Priorities" },
   { href: "/planner", label: "Planner" },
-  { href: "/forecast-risk", label: "Forecast & Risk" },
+  { href: "/evidence", label: "Evidence" },
   { href: "/model", label: "Model" },
 ];
 

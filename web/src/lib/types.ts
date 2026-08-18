@@ -297,3 +297,14 @@ export interface VarianceBridgeResponse {
   waterfall: BridgeStep[];
   steps: VarianceStep[];
 }
+
+export interface MetricMapping {
+  /** Ledger-backed clients map account numbers; a client built from published
+   *  filings maps a path into the extracted facts document. Either may be
+   *  absent for a metric the model constructs rather than reads. */
+  source_accounts?: string[];
+  fact_path?: string | null;
+  statement: string;
+  basis: "reported" | "derived";
+  note?: string;
+}

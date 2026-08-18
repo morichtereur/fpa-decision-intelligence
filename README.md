@@ -378,10 +378,22 @@ What is real is the shape the mapping would take.
 
 ### The interface
 
-Five destinations: **Outlook** (what needs attention), **Priorities** (the
-ranking and the rule that produced it), **Planner** (if this assumption moves,
-what decision follows), **Model** (how this business creates financial
-outcomes), **Evidence** (backtest, simulation, lineage, limits).
+Five destinations, split by the question the reader arrived with:
+
+| | |
+|---|---|
+| **Outlook** | What needs attention, and what is at stake |
+| **Priorities** | The ranking, and the rule that produced it |
+| **Planner** | If this assumption moves, what decision follows |
+| **Model** | How this business creates financial outcomes — calculation chain, data mapping, assumption register |
+| **Evidence** | Whether to believe it — backtest, variance bridge, simulation, lineage, limits |
+
+Model and Evidence are separated deliberately. A controller working the
+assumptions and a reviewer looking for a reason to disbelieve the model want
+different things, and interleaving them costs both. The disclaimers on Evidence
+are per client: a synthetic client is told it has no validated model and no
+measured uncertainty, rather than inheriting a public company's caveats about
+price/volume disclosure.
 
 The active planning model is a query parameter, so a link to a specific
 client's priorities is shareable. Switching changes drivers, KPIs, currency,

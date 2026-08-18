@@ -10,6 +10,7 @@ import type {
   MonteCarloResponse,
   OutlookResponse,
   PresetsResponse,
+  MetricMapping,
   PrioritiesResponse,
   VarianceBridgeResponse,
   ScenarioResponse,
@@ -60,6 +61,8 @@ export const api = {
   driverPriority: (c?: ClientId) => request<DriverPriorityRow[]>(scoped("/api/driver-priority", c)),
   monteCarlo: (c?: ClientId) => request<MonteCarloResponse>(scoped("/api/monte-carlo", c)),
   assumptions: (c?: ClientId) => request<AssumptionRow[]>(scoped("/api/assumptions", c)),
+  mappings: (c?: ClientId) =>
+    request<Record<string, MetricMapping>>(scoped("/api/mappings", c)),
   priorities: (c?: ClientId) => request<PrioritiesResponse>(scoped("/api/priorities", c)),
   variance: (metric = "free_cash_flow", c?: ClientId) =>
     request<VarianceBridgeResponse | null>(scoped(`/api/variance/${metric}`, c)),

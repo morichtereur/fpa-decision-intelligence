@@ -104,7 +104,7 @@ export default async function OutlookPage({
               range the plan could land in.
             </p>
           )}
-          <Link href={withClient("/forecast-risk", client)} className={styles.moreLink}>
+          <Link href={withClient("/evidence", client)} className={styles.moreLink}>
             {backtest ? "Full backtest and Monte Carlo range →" : "Monte Carlo range →"}
           </Link>
         </div>
