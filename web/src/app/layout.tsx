@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Archivo, Source_Serif_4, IBM_Plex_Mono } from "next/font/google";
+import { Suspense } from "react";
 import Nav from "@/components/Nav";
+import { api } from "@/lib/api";
+import type { ClientSummary } from "@/lib/types";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -23,16 +26,34 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FP&A Decision Model — adidas AG",
+  title: "FP&A Decision Intelligence Accelerator",
   description:
-    "Interactive FP&A decision cockpit: driver-based forecast, scenario planning, backtest and risk for adidas AG.",
+    "A configurable FP&A decision-support accelerator: driver-based forecasting, scenario planning, "
+    + "and quantified financial exposures ranked into management priorities.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+/** The nav needs the list of planning models, and the API is the only place
+ *  that knows them. Failing soft matters here: if the API is unreachable the
+ *  shell should still render so the page below can report the real error,
+ *  rather than the whole app 500ing on its own chrome. */
+async function loadClients(): Promise<{ clients: ClientSummary[]; active: string }> {
+  try {
+    const { clients, default: fallback } = await api.clients();
+    return { clients, active: fallback };
+  } catch {
+    return { clients: [], active: "" };
+  }
+}
+
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const { clients, active } = await loadClients();
+
   return (
     <html lang="en" className={`${archivo.variable} ${sourceSerif.variable} ${plexMono.variable}`}>
       <body>
-        <Nav />
+        <Suspense>
+          <Nav clients={clients} activeClient={active} />
+        </Suspense>
         <main>{children}</main>
       </body>
     </html>

@@ -10,7 +10,9 @@ export default function MonteCarloChart({
   actualFcf,
 }: {
   monteCarlo: MonteCarloResponse;
-  actualFcf: number;
+  /** Omitted for a client with no actual outturn to mark. The reference line
+   *  and its legend entry disappear rather than being drawn at zero. */
+  actualFcf?: number;
 }) {
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const { counts, bin_edges } = monteCarlo.histogram;
@@ -56,14 +58,16 @@ export default function MonteCarloChart({
           y2={height - 30}
           className={styles.p50Line}
         />
-        {/* Actual FY2025 marker */}
-        <line
-          x1={(toX(actualFcf) / 100) * width}
-          x2={(toX(actualFcf) / 100) * width}
-          y1={0}
-          y2={height - 30}
-          className={styles.actualLine}
-        />
+        {/* Actual outturn marker — only where an actual exists */}
+        {actualFcf !== undefined && (
+          <line
+            x1={(toX(actualFcf) / 100) * width}
+            x2={(toX(actualFcf) / 100) * width}
+            y1={0}
+            y2={height - 30}
+            className={styles.actualLine}
+          />
+        )}
       </svg>
 
       <div className={styles.axisLabels}>
@@ -75,9 +79,11 @@ export default function MonteCarloChart({
         <span className={styles.legendItem}>
           <span className={`${styles.swatch} ${styles.swatchP50}`} /> Median (P50): {formatEur(monteCarlo.fcf_p50)}
         </span>
-        <span className={styles.legendItem}>
-          <span className={`${styles.swatch} ${styles.swatchActual}`} /> Actual FY2025: {formatEur(actualFcf)}
-        </span>
+        {actualFcf !== undefined && (
+          <span className={styles.legendItem}>
+            <span className={`${styles.swatch} ${styles.swatchActual}`} /> Actual: {formatEur(actualFcf)}
+          </span>
+        )}
       </div>
 
       {hoverIndex !== null && (

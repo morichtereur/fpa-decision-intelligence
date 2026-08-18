@@ -11,6 +11,13 @@ function perUnitLabel(unit: string): string | null {
   return null;
 }
 
+/** "Inventory days" + unit `days` would read "one day of inventory days".
+ *  The unit is already in the sentence, so it comes out of the label. */
+function subject(label: string, unit: string): string {
+  const trimmed = unit === "days" ? label.replace(/\s*days$/i, "") : label;
+  return trimmed.toLowerCase();
+}
+
 function rangeText(low: number, high: number, unit: string): string {
   if (unit === "eur_m") return `${formatEur(low)}–${formatEur(high)}`;
   const suffix = unit === "days" ? " days" : "%";
@@ -70,7 +77,7 @@ export default function DecisionBrief({ brief }: { brief: DecisionBriefResponse 
           </span>
           {unitLabel && (
             <span className={styles.perUnit}>
-              One {unitLabel} of {lead.label.toLowerCase()}{" "}
+              One extra {subject(lead.label, lead.unit)} {unitLabel}{" "}
               {lead.per_unit < 0 ? "costs" : "adds"}{" "}
               <span className="mono">{formatEur(Math.abs(lead.per_unit))}</span> of {objectiveName}.
             </span>

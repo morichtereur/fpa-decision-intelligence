@@ -1,15 +1,26 @@
 import { api } from "@/lib/api";
+import { clientFrom, type SearchParams } from "@/lib/client";
 import PriorityTable from "@/components/PriorityTable";
 import styles from "./priorities.module.css";
 
 export const dynamic = "force-dynamic";
 
-export default async function PrioritiesPage() {
-  const { ranked, methodology } = await api.priorities();
+export default async function PrioritiesPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const client = clientFrom(await searchParams);
+  const [{ ranked, methodology }, summary] = await Promise.all([
+    api.priorities(client),
+    api.client(client),
+  ]);
 
   return (
     <div className={styles.page}>
-      <span className={`label ${styles.eyebrow}`}>Priorities · {methodology.objective}</span>
+      <span className={`label ${styles.eyebrow}`}>
+        Priorities · {summary.short_label} · {methodology.objective}
+      </span>
       <h1 className={styles.heading}>Where should management spend its next 30 minutes?</h1>
       <p className={styles.intro}>
         Every planning driver, ranked by what it would take to move it and what moving it is

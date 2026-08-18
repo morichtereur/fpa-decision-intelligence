@@ -1,26 +1,37 @@
 import { api } from "@/lib/api";
+import { clientFrom, type SearchParams } from "@/lib/client";
 import DriverTree from "@/components/DriverTree";
 import AssumptionRegister from "@/components/AssumptionRegister";
 import styles from "./model.module.css";
 
 export const dynamic = "force-dynamic";
 
-export default async function ModelPage() {
-  const assumptions = await api.assumptions();
+export default async function ModelPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const client = clientFrom(await searchParams);
+  const [assumptions, summary, drivers] = await Promise.all([
+    api.assumptions(client),
+    api.client(client),
+    api.drivers(client),
+  ]);
 
   return (
     <div className={styles.page}>
-      <div className={`label ${styles.eyebrow}`}>04 — Model &amp; Assumptions</div>
+      <div className={`label ${styles.eyebrow}`}>Model · {summary.short_label} · {summary.industry}</div>
       <h1 className={styles.heading}>How the forecast is actually built</h1>
       <p className={styles.intro}>
-        No step here requires reading Python to understand. The calculation chain, every
-        assumption behind it, and where each number traces back to are shown directly — the model
-        is authoritative, this page is a window into it, not a separate description of it.
+        No step here requires reading Python to understand. The calculation chain is fixed by
+        the model; the drivers hanging off it come from {summary.name}&rsquo;s own configuration,
+        which is where a client&rsquo;s economics live. The model is authoritative — this page is
+        a window into it, not a separate description of it.
       </p>
 
       <section className={styles.section}>
         <h2 className={styles.sectionHeading}>Calculation chain</h2>
-        <DriverTree />
+        <DriverTree summary={summary} drivers={drivers} />
       </section>
 
       <section className={styles.section}>
@@ -29,6 +40,7 @@ export default async function ModelPage() {
         <AssumptionRegister rows={assumptions} />
       </section>
 
+      {summary.has_backtest && (
       <section className={styles.section}>
         <h2 className={styles.sectionHeading}>Data lineage — an example</h2>
         <div className={styles.lineage}>
@@ -57,10 +69,16 @@ export default async function ModelPage() {
           </div>
         </div>
       </section>
+      )}
 
       <section className={styles.section}>
         <h2 className={styles.sectionHeading}>What this is not</h2>
         <ul className={styles.notList}>
+          {summary.is_synthetic && (
+            <li>
+              <strong>A real company.</strong> {summary.disclaimer}
+            </li>
+          )}
           <li>
             <strong>A multi-company benchmark.</strong> One company, two driver dimensions
             (product division, channel), three fiscal years.

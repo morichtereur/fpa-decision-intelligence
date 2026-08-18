@@ -77,3 +77,12 @@
     flex-wrap: wrap;
   }
 }
+
+/* Wordmark and the active-model selector share the brand slot: the product
+   name, and directly beneath it the model that name is currently pointed at. */
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}

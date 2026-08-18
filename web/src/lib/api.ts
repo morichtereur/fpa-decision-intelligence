@@ -1,4 +1,5 @@
 import type {
+  ClientSummary,
   AssumptionRow,
   BacktestResult,
   CommentaryResponse,
@@ -14,6 +15,17 @@ import type {
 } from "./types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
+
+/** Which planning model the request is against. Threaded explicitly through
+ *  every call rather than held in module state: a server component rendering
+ *  two clients' pages concurrently must not be able to see one bleed into the
+ *  other, and an implicit "current client" is exactly how that happens. */
+export type ClientId = string | undefined;
+
+function scoped(path: string, client: ClientId): string {
+  if (!client) return path;
+  return `${path}${path.includes("?") ? "&" : "?"}client=${encodeURIComponent(client)}`;
+}
 
 class ApiError extends Error {
   constructor(
@@ -38,30 +50,33 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
-  outlook: () => request<OutlookResponse>("/api/outlook"),
-  drivers: () => request<DriverConfig>("/api/drivers"),
-  presets: () => request<PresetsResponse>("/api/presets"),
-  backtest: () => request<BacktestResult>("/api/backtest"),
-  driverPriority: () => request<DriverPriorityRow[]>("/api/driver-priority"),
-  monteCarlo: () => request<MonteCarloResponse>("/api/monte-carlo"),
-  assumptions: () => request<AssumptionRow[]>("/api/assumptions"),
-  priorities: () => request<PrioritiesResponse>("/api/priorities"),
-  decisionBrief: () => request<DecisionBriefResponse>("/api/decision-brief"),
-  decisionBriefFor: (driverValues: DriverValues) =>
+  clients: () => request<{ default: string; clients: ClientSummary[] }>("/api/clients"),
+  client: (c?: ClientId) => request<ClientSummary>(scoped("/api/client", c)),
+  outlook: (c?: ClientId) => request<OutlookResponse>(scoped("/api/outlook", c)),
+  drivers: (c?: ClientId) => request<DriverConfig>(scoped("/api/drivers", c)),
+  presets: (c?: ClientId) => request<PresetsResponse>(scoped("/api/presets", c)),
+  backtest: (c?: ClientId) => request<BacktestResult | null>(scoped("/api/backtest", c)),
+  driverPriority: (c?: ClientId) => request<DriverPriorityRow[]>(scoped("/api/driver-priority", c)),
+  monteCarlo: (c?: ClientId) => request<MonteCarloResponse>(scoped("/api/monte-carlo", c)),
+  assumptions: (c?: ClientId) => request<AssumptionRow[]>(scoped("/api/assumptions", c)),
+  priorities: (c?: ClientId) => request<PrioritiesResponse>(scoped("/api/priorities", c)),
+  decisionBrief: (c?: ClientId) => request<DecisionBriefResponse>(scoped("/api/decision-brief", c)),
+  decisionBriefFor: (driverValues: DriverValues, c?: ClientId) =>
     request<DecisionBriefResponse>("/api/decision-brief", {
       method: "POST",
-      body: JSON.stringify({ driver_values: driverValues }),
+      body: JSON.stringify({ driver_values: driverValues, client: c }),
     }),
-  commentary: (scenarioId: string) => request<CommentaryResponse>(`/api/commentary/${scenarioId}`),
-  scenario: (driverValues: DriverValues) =>
+  commentary: (scenarioId: string, c?: ClientId) =>
+    request<CommentaryResponse>(scoped(`/api/commentary/${scenarioId}`, c)),
+  scenario: (driverValues: DriverValues, c?: ClientId) =>
     request<ScenarioResponse>("/api/scenario", {
       method: "POST",
-      body: JSON.stringify({ driver_values: driverValues }),
+      body: JSON.stringify({ driver_values: driverValues, client: c }),
     }),
-  commentaryLive: (driverValues: DriverValues) =>
+  commentaryLive: (driverValues: DriverValues, c?: ClientId) =>
     request<CommentaryResponse>("/api/commentary/live", {
       method: "POST",
-      body: JSON.stringify({ driver_values: driverValues }),
+      body: JSON.stringify({ driver_values: driverValues, client: c }),
     }),
 };
 

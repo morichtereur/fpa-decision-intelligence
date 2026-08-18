@@ -2,15 +2,22 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api, ApiError } from "@/lib/api";
-import type { CommentaryResponse, DriverConfig, DriverValues, PresetsResponse, ScenarioResponse } from "@/lib/types";
+import type {
+  ClientSummary,
+  CommentaryResponse,
+  DecisionBriefResponse,
+  DriverConfig,
+  DriverValues,
+  PresetsResponse,
+  ScenarioResponse,
+} from "@/lib/types";
 import DriverControl from "@/components/DriverControl";
 import PresetSelector from "@/components/PresetSelector";
 import ScenarioComparisonTable from "@/components/ScenarioComparisonTable";
 import BridgeChart from "@/components/BridgeChart";
 import CommentaryPanel from "@/components/CommentaryPanel";
+import DecisionConsequence from "@/components/DecisionConsequence";
 import styles from "./planner.module.css";
-
-const DRIVER_ORDER = ["revenue_growth", "ebitda_margin", "working_capital_pct", "capex_eur_m", "tax_rate_pct"];
 
 /** Surface what actually went wrong. A collapsed "it failed" hides the two
  *  cases that look identical from the outside and need opposite fixes: the
@@ -29,14 +36,24 @@ function describeError(err: unknown): string {
 }
 
 export default function PlannerClient({
+  client,
+  summary,
   driverConfig,
   presets,
   initialScenario,
+  initialBrief,
 }: {
+  client: string | undefined;
+  summary: ClientSummary;
   driverConfig: DriverConfig;
   presets: PresetsResponse;
   initialScenario: ScenarioResponse;
+  initialBrief: DecisionBriefResponse;
 }) {
+  // Driver order is the client pack's, served with the config. A frontend
+  // constant listing adidas's five drivers by name used to live here, which
+  // silently dropped every driver a different client added.
+  const driverOrder = useMemo(() => Object.keys(driverConfig), [driverConfig]);
   const baseValues = useMemo(
     () => Object.fromEntries(Object.entries(driverConfig).map(([id, spec]) => [id, spec.default])),
     [driverConfig],
@@ -45,6 +62,7 @@ export default function PlannerClient({
   const [driverValues, setDriverValues] = useState<DriverValues>(baseValues);
   const [activePresetId, setActivePresetId] = useState<string | null>("base");
   const [scenario, setScenario] = useState<ScenarioResponse>(initialScenario);
+  const [brief, setBrief] = useState<DecisionBriefResponse>(initialBrief);
   const [commentary, setCommentary] = useState<CommentaryResponse | null>(null);
   const [commentaryLoading, setCommentaryLoading] = useState(false);
   const [commentaryError, setCommentaryError] = useState<string | null>(null);
@@ -56,8 +74,14 @@ export default function PlannerClient({
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {
       try {
-        const result = await api.scenario(values);
+        // Scenario and brief are fetched together so the numbers and the
+        // decision they imply can never be one keystroke out of step.
+        const [result, nextBrief] = await Promise.all([
+          api.scenario(values, client),
+          api.decisionBriefFor(values, client),
+        ]);
         setScenario(result);
+        setBrief(nextBrief);
         setScenarioError(null);
       } catch (err) {
         // Without this the await rejects inside a setTimeout callback, where
@@ -67,7 +91,7 @@ export default function PlannerClient({
         setScenarioError(describeError(err));
       }
     }, 120);
-  }, []);
+  }, [client]);
 
   useEffect(() => {
     return () => {
@@ -108,7 +132,7 @@ export default function PlannerClient({
     setCommentaryError(null);
     recompute(values);
     api
-      .commentary(presetId)
+      .commentary(presetId, client)
       .then(setCommentary)
       .catch(() => setCommentary(null));
   }
@@ -121,7 +145,7 @@ export default function PlannerClient({
     setCommentaryLoading(true);
     setCommentaryError(null);
     try {
-      const result = await api.commentaryLive(driverValues);
+      const result = await api.commentaryLive(driverValues, client);
       setCommentary(result);
     } catch (err) {
       console.error("POST /api/commentary/live failed", err);
@@ -140,8 +164,8 @@ export default function PlannerClient({
 
   return (
     <div className={styles.page}>
-      <div className={`label ${styles.eyebrow}`}>02 — Scenario Planner</div>
-      <h1 className={styles.heading}>Change an assumption, see the financial consequence</h1>
+      <div className={`label ${styles.eyebrow}`}>Planner · {summary.short_label} · {summary.fiscal_year}</div>
+      <h1 className={styles.heading}>Change an assumption, see the decision it creates</h1>
 
       <div className={styles.layout}>
         <div className={styles.controlsColumn}>
@@ -156,7 +180,7 @@ export default function PlannerClient({
           </div>
 
           <div className={styles.controls}>
-            {DRIVER_ORDER.map((driverId) => (
+            {driverOrder.map((driverId) => (
               <DriverControl
                 key={driverId}
                 driverId={driverId}
@@ -169,12 +193,14 @@ export default function PlannerClient({
         </div>
 
         <div className={styles.resultsColumn}>
+          <DecisionConsequence brief={brief} hasChanges={hasChanges} />
+
           {outOfGuidanceIds.length > 0 && (
             <div className={styles.guidanceWarning}>
               <span className={styles.warningLabel}>Outside disclosed guidance</span>
               <span>
-                {outOfGuidanceIds.map((id) => driverConfig[id].label).join(", ")} — useful for stress testing,
-                but adidas has not guided to this range.
+                {outOfGuidanceIds.map((id) => driverConfig[id].label).join(", ")} — useful for stress
+                testing, but {summary.short_label} has not guided to this range.
               </span>
             </div>
           )}

@@ -36,8 +36,11 @@ export interface BacktestResult {
 }
 
 export interface DriverSpec {
+  maps_to: string;
+  role: string;
+  category: string;
   label: string;
-  unit: "pct" | "eur_m";
+  unit: "pct" | "eur_m" | "days" | "ppt";
   min: number;
   max: number;
   step: number;
@@ -116,7 +119,7 @@ export interface AssumptionRow {
   driver_id: string;
   label: string;
   current_value: number;
-  unit: "pct" | "eur_m";
+  unit: "pct" | "eur_m" | "days" | "ppt";
   source: string;
   guidance_text: string;
   confidence: "High" | "Medium" | "Low";

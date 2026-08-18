@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { api } from "@/lib/api";
+import { clientFrom, withClient, type SearchParams } from "@/lib/client";
 import { formatEur, formatSignedPct } from "@/lib/format";
 import DecisionBrief from "@/components/DecisionBrief";
 import MetricDisplay from "@/components/MetricDisplay";
@@ -9,8 +10,13 @@ import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
 
-export default async function OutlookPage() {
-  const [outlook, brief] = await Promise.all([api.outlook(), api.decisionBrief()]);
+export default async function OutlookPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const client = clientFrom(await searchParams);
+  const [outlook, brief] = await Promise.all([api.outlook(client), api.decisionBrief(client)]);
   const { forecast, backtest, statement } = outlook;
 
   const revDelta = backtest?.driver_based.revenue_error_pct ?? 0;
@@ -82,7 +88,7 @@ export default async function OutlookPage() {
               </li>
             ))}
           </ol>
-          <Link href="/priorities" className={styles.moreLink}>
+          <Link href={withClient("/priorities", client)} className={styles.moreLink}>
             All priorities and how they are ranked →
           </Link>
         </div>
@@ -98,7 +104,7 @@ export default async function OutlookPage() {
               range the plan could land in.
             </p>
           )}
-          <Link href="/forecast-risk" className={styles.moreLink}>
+          <Link href={withClient("/forecast-risk", client)} className={styles.moreLink}>
             {backtest ? "Full backtest and Monte Carlo range →" : "Monte Carlo range →"}
           </Link>
         </div>

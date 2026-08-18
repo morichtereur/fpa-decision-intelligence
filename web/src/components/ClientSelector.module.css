@@ -1,0 +1,56 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  transition: opacity var(--duration-fast) var(--ease-standard);
+}
+
+.wrap[data-pending] {
+  opacity: 0.55;
+}
+
+.label {
+  font-family: var(--font-display);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.control {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Deliberately unstyled apart from the type: a select that looks like a
+   button invites being read as a filter. This should read as the name of the
+   thing you are looking at, which happens to be changeable. */
+.select {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  border-bottom: 1px solid transparent;
+}
+
+.select:hover {
+  border-bottom-color: var(--color-border-strong);
+}
+
+.select:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.caret {
+  font-size: 0.5rem;
+  color: var(--color-text-secondary);
+  pointer-events: none;
+}
