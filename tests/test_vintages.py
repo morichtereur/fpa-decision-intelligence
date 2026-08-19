@@ -2,9 +2,14 @@
 Two backtest vintages, and what they jointly support.
 
 A single point could not distinguish "the method works" from "the method got
-one year right". Two can do a little better — and the second one immediately
-falsified a claim this project had been making, which is the most useful thing
-a second data point can do.
+one year right". Two can do a little better.
+
+The second vintage's first job was to expose a defect. Carrying FY2023's
+effective tax rate forward gave a FY2024 plan built on a 189.2% tax rate — tax
+expense on a near-zero pre-tax result in the write-off year — which made the
+driver-based forecast look worse than a naive extrapolation on free cash flow.
+That was the model being wrong, not the method being weak. The rule is guarded
+now, and these tests pin both the guard and the result.
 """
 
 import pytest
@@ -56,20 +61,53 @@ def test_driver_based_beats_naive_on_revenue_and_operating_profit(results):
             assert driver < naive, f"{vintage} {metric}: driver {driver} vs naive {naive}"
 
 
-def test_driver_based_LOSES_to_naive_on_fy2024_free_cash_flow(results):
-    """The claim this project used to make — that the driver-based forecast
-    beat a naive extrapolation on every metric — was true of one vintage and
-    is false across two.
+def test_the_tax_carry_forward_rule_is_guarded(results):
+    """FY2023's effective rate was 189.2% — tax expense on a near-zero pre-tax
+    result. Carrying that into a FY2024 plan is not conservative, it is
+    meaningless, and it cost the driver-based forecast 32 points of
+    free-cash-flow error on its own."""
+    import json
+    from src import config as C
 
-    In FY2024 adidas released working capital from 25.7% to 19.7% of sales
-    while guiding 23-24%. The guidance-anchored forecast inherited that error;
-    the naive one, holding the prior year's ratio flat, happened to land
-    closer. Asserted so the claim cannot quietly reappear.
-    """
-    r = results["fy2024"]
-    driver = abs(r["driver_based"]["free_cash_flow_error_pct"])
-    naive = abs(r["naive"]["free_cash_flow_error_pct"])
-    assert driver > naive, "if this reverses, the README's scorecard needs rewriting"
+    facts = json.loads((C.FACTS / "adidas_drivers.json").read_text())
+
+    raw = facts["group"]["2023"]["effective_tax_rate_pct"]
+    assert raw > 100, "fixture drift: FY2023 is the anomalous year this guard exists for"
+
+    used, basis = backtest.normalised_tax_rate(facts, "2023")
+    low, high = backtest.PLAUSIBLE_TAX_RATE
+    assert low <= used <= high
+    assert "outside" in basis
+
+    # FY2024's own rate must not be used to normalise the FY2024 forecast.
+    assert used != facts["group"]["2024"]["effective_tax_rate_pct"], "look-ahead bias"
+    assert used == facts["group"]["2022"]["effective_tax_rate_pct"], (
+        "the only in-band rate published by FY2023 is FY2022's"
+    )
+
+
+def test_a_normal_year_still_carries_its_own_rate_forward():
+    """The guard must not disturb the vintage everything else was built
+    against — FY2025's baseline rate is plausible and is used unchanged."""
+    import json
+    from src import config as C
+
+    facts = json.loads((C.FACTS / "adidas_drivers.json").read_text())
+    used, basis = backtest.normalised_tax_rate(facts, "2024")
+    assert used == facts["group"]["2024"]["effective_tax_rate_pct"]
+    assert "carried forward" in basis
+
+
+def test_the_guard_does_not_flatter_the_forecast(results):
+    """The substituted rate is HIGHER than the year's eventual actual, so the
+    guard makes the forecast more conservative, not more accurate. A fix that
+    happened to help the metric being tested would deserve suspicion."""
+    import json
+    from src import config as C
+
+    facts = json.loads((C.FACTS / "adidas_drivers.json").read_text())
+    used, _ = backtest.normalised_tax_rate(facts, "2023")
+    assert used > facts["group"]["2024"]["effective_tax_rate_pct"]
 
 
 def test_both_vintages_undershoot(results):
@@ -81,15 +119,28 @@ def test_both_vintages_undershoot(results):
         assert results[vintage]["driver_based"]["operating_profit_error_pct"] < 0
 
 
-def test_the_scorecard_is_five_of_six(results):
-    """The honest headline: driver-based wins 5 of 6 metric-vintage pairs."""
+def test_the_scorecard_is_six_of_six(results):
+    """Driver-based lands closer on every metric in both vintages.
+
+    Stated as a count rather than a claim so that if a fact correction moves
+    it, this fails and the README has to move with it. It has already moved
+    once: it read 5 of 6 while the tax rule was unguarded.
+    """
     wins = sum(
         abs(results[v]["driver_based"][f"{m}_error_pct"])
         < abs(results[v]["naive"][f"{m}_error_pct"])
         for v in VINTAGES
         for m in METRICS
     )
-    assert wins == 5, f"scorecard moved to {wins}/6 — the stated claim must move with it"
+    assert wins == 6, f"scorecard moved to {wins}/6 — the stated claim must move with it"
+
+
+def test_winning_every_comparison_is_not_the_same_as_being_accurate(results):
+    """Beating a weak baseline on all six says nothing about the size of the
+    misses, which remain large. Asserted so the scorecard is never read as
+    accuracy."""
+    assert abs(results["fy2024"]["driver_based"]["operating_profit_error_pct"]) > 50
+    assert abs(results["fy2024"]["driver_based"]["free_cash_flow_error_pct"]) > 40
 
 
 def test_unknown_vintage_is_rejected():

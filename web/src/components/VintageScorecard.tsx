@@ -81,13 +81,18 @@ export default function VintageScorecard({ vintages }: { vintages: BacktestVinta
         </table>
       </div>
 
-      {losses.length > 0 && (
+      {losses.length > 0 ? (
         <p className={styles.note}>
           The driver-based method is not uniformly better. It lost on{" "}
-          {losses.join(" and ")}: adidas released working capital far faster than its own
-          guidance implied, and a naive extrapolation holding the prior year&rsquo;s ratio flat
-          happened to land closer on cash. A method that wins on average can still lose the
-          year that matters.
+          {losses.join(" and ")} — a method that wins on average can still lose the year that
+          matters.
+        </p>
+      ) : (
+        <p className={styles.note}>
+          Winning every comparison is a statement about the baseline, not about accuracy. A
+          −62.6% miss beats a −84.8% miss and both are badly wrong. What these two years support
+          is that the error <em>repeats</em>: guidance-anchored forecasts inherit whatever
+          conservatism the guidance carried.
         </p>
       )}
     </>

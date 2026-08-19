@@ -49,12 +49,11 @@ export default async function ForecastRiskPage({
         {backtest ? (
           <>
             <p className={styles.sectionIntro}>
-              Across the two vintages this data supports, the driver-based forecast produced a
-              smaller error than a naive extrapolation on five of six metric-year pairs — and
-              lost on FY2024 free cash flow, where {summary.short_label} released working
-              capital far faster than its own guidance implied. Both methods undershot in both
-              years. Beating a naive baseline five times out of six is not the same claim as
-              being reliable.
+              Across the two vintages this data supports, the driver-based forecast landed
+              closer than a naive extrapolation on all six metric-year pairs. That is a
+              statement about a weak baseline, not about accuracy: both methods undershot in
+              both years, and the FY2024 operating-profit forecast was wrong by 63%. Beating a
+              naive baseline is not the same claim as being reliable.
             </p>
             <div className={styles.backtestLayout}>
               <BacktestBars backtest={backtest} />

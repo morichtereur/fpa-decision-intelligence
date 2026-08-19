@@ -133,6 +133,96 @@ def naive_baseline(facts: dict, vintage: str = DEFAULT_VINTAGE) -> dict:
     }
 
 
+#: The band an effective tax rate has to fall in to be worth carrying forward.
+#: Wide on purpose — this is a sanity check, not a view on tax policy.
+PLAUSIBLE_TAX_RATE = (10.0, 45.0)
+
+
+def normalised_tax_rate(facts: dict, baseline_year: str) -> tuple[float, str]:
+    """The tax rate to plan with, and why.
+
+    No vintage has tax guidance, so the rule is to carry the baseline year's
+    actual effective rate forward. That rule is fine in a normal year and
+    breaks in an abnormal one: adidas's FY2023 effective rate was 189.2%, tax
+    expense on a near-zero pre-tax result in the Yeezy write-off year. Carrying
+    189.2% into a FY2024 plan is not a conservative assumption, it is a
+    meaningless one, and no analyst building that plan in February 2024 would
+    have used it.
+
+    So an out-of-band rate falls back to the median of the in-band rates that
+    were **already published** at the time — never a later year. Using FY2024's
+    own outturn to normalise the FY2024 forecast would be look-ahead bias, and
+    it would flatter the model on exactly the metric being tested.
+
+    Returns the rate and the basis, so the interface can say which rule fired.
+    """
+    low, high = PLAUSIBLE_TAX_RATE
+    rate = facts["group"][baseline_year]["effective_tax_rate_pct"]
+    if low <= rate <= high:
+        return rate, f"FY{baseline_year} actual effective rate, carried forward"
+
+    available = sorted(
+        year for year in facts["group"]
+        if year.isdigit() and int(year) <= int(baseline_year)
+    )
+    in_band = [
+        facts["group"][y]["effective_tax_rate_pct"] for y in available
+        if low <= facts["group"][y]["effective_tax_rate_pct"] <= high
+    ]
+    if not in_band:
+        raise ValueError(
+            f"No plausible effective tax rate available at FY{baseline_year}: "
+            f"every published rate falls outside {PLAUSIBLE_TAX_RATE}."
+        )
+    in_band.sort()
+    median = in_band[len(in_band) // 2] if len(in_band) % 2 else (
+        (in_band[len(in_band) // 2 - 1] + in_band[len(in_band) // 2]) / 2
+    )
+    return median, (
+        f"FY{baseline_year} actual rate of {rate:.1f}% falls outside "
+        f"{low:.0f}-{high:.0f}%; median of rates published by then used instead"
+    )
+
+
+def driver_values(facts: dict, vintage: str = DEFAULT_VINTAGE) -> dict:
+    """The vintage's guidance expressed as flat driver values.
+
+    Factored out of driver_based() so the variance bridge can walk the same
+    numbers this forecast was built from, for any vintage, without a second
+    implementation of "what did the plan assume". The FY2025 vintage's output
+    here is by construction identical to the client pack's base case — asserted
+    in tests/test_drivers.py, which is what makes the backtest evidence for the
+    planner rather than a separate exhibit.
+    """
+    spec = VINTAGES[vintage]
+    group = facts["group"][spec["baseline"]]
+    division = facts["product_division"][spec["baseline"]]
+    guidance = facts["guidance"][spec["guidance"]]
+
+    growth = spec["growth"]  # a guidance phrase, interpreted — see VINTAGES
+    division_baseline = {k: v for k, v in division.items() if k != "source"}
+    baseline_revenue = sum(division_baseline.values())
+    revenue = baseline_revenue * (1 + growth)
+    baseline_da = group["ebitda"] - group["operating_profit"]
+
+    op_profit_target = (guidance["operating_profit_eur_m_low"] + guidance["operating_profit_eur_m_high"]) / 2
+
+    return {
+        "revenue_growth": growth * 100,
+        "ebitda_margin": _margin_for_operating_profit(
+            op_profit_target, revenue, baseline_da, baseline_revenue
+        ),
+        "working_capital_pct": (
+            guidance["operating_working_capital_pct_low"]
+            + guidance["operating_working_capital_pct_high"]
+        ) / 2,
+        "capex_eur_m": guidance["capex_eur_m"],
+        # No tax guidance is ever given. See normalised_tax_rate() — the
+        # carry-forward rule needs a guard, and the FY2024 vintage is why.
+        "tax_rate_pct": normalised_tax_rate(facts, spec["baseline"])[0],
+    }
+
+
 def driver_based(facts: dict, vintage: str = DEFAULT_VINTAGE) -> dict:
     """Build the model as of the vintage's baseline year, using that report's
     own figures (not a later restatement) plus adidas's stated guidance for
@@ -140,25 +230,15 @@ def driver_based(facts: dict, vintage: str = DEFAULT_VINTAGE) -> dict:
     spec = VINTAGES[vintage]
     g24 = facts["group"][spec["baseline"]]
     division24 = facts["product_division"][spec["baseline"]]
-    guidance = facts["guidance"][spec["guidance"]]
-
-    growth = spec["growth"]  # a guidance phrase, interpreted — see VINTAGES
     division_baseline = {k: v for k, v in division24.items() if k != "source"}
-    revenue = sum(v * (1 + growth) for v in division_baseline.values())
-
-    baseline_da = g24["ebitda"] - g24["operating_profit"]
-    baseline_revenue = sum(division_baseline.values())
-    op_profit_target = (guidance["operating_profit_eur_m_low"] + guidance["operating_profit_eur_m_high"]) / 2
-    ebitda_margin_pct = _margin_for_operating_profit(op_profit_target, revenue, baseline_da, baseline_revenue)
-
-    wc_pct = (guidance["operating_working_capital_pct_low"] + guidance["operating_working_capital_pct_high"]) / 2
+    values = driver_values(facts, vintage)
 
     assumptions = {
-        "division_growth": {k: growth for k in division_baseline},
-        "ebitda_margin_pct": ebitda_margin_pct,
-        "effective_tax_rate_pct": g24["effective_tax_rate_pct"],  # no guidance given; carried forward
-        "operating_working_capital_pct": wc_pct,
-        "capex_eur_m": guidance["capex_eur_m"],
+        "division_growth": {k: values["revenue_growth"] / 100 for k in division_baseline},
+        "ebitda_margin_pct": values["ebitda_margin"],
+        "effective_tax_rate_pct": values["tax_rate_pct"],
+        "operating_working_capital_pct": values["working_capital_pct"],
+        "capex_eur_m": values["capex_eur_m"],
     }
 
     result = model.forecast(g24, division24, assumptions)

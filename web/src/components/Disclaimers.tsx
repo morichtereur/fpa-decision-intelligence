@@ -37,9 +37,9 @@ export default function Disclaimers({
             segmentation, but the model runs one at a time.
           </li>
           <li>
-            <strong>A track record.</strong> Two backtest points, and the method loses one of
-            the six comparisons. That is enough to show an error repeating; it is not evidence
-            the approach generalizes.
+            <strong>A track record.</strong> Two backtest points. Enough to show an error
+            repeating and to expose a broken assumption; not enough to show the approach
+            generalizes, and both forecasts missed by a lot.
           </li>
           <li>
             <strong>A trading or investment signal.</strong> A methodology exercise on public

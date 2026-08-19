@@ -60,26 +60,36 @@ have had.
 
 ### What two points showed that one could not
 
-| | FY2023 → FY2024 | FY2024 → FY2025 |
+| Error vs. actual | FY2023 → FY2024 | FY2024 → FY2025 |
 |---|---:|---:|
 | Revenue | **−5.0%** vs naive −13.9% | **+3.1%** vs naive +5.5% |
 | Operating profit | **−62.6%** vs naive −84.8% | **−14.9%** vs naive −22.3% |
-| Free cash flow | −86.8% vs naive **−72.2%** | **−3.4%** vs naive +14.8% |
+| Free cash flow | **−54.7%** vs naive −72.2% | **−3.4%** vs naive +14.8% |
 
-The driver-based forecast wins **five of six** metric-year pairs — and loses
-one. In FY2024 adidas released working capital from 25.7% to 19.7% of sales
-while guiding 23–24%; the guidance-anchored forecast inherited that error, and
-the naive extrapolation happened to land closer on cash.
+The driver-based forecast lands closer on all six metric-year pairs. That is a
+statement about a weak baseline, not about accuracy: a −62.6% miss beats a
+−84.8% miss and both are badly wrong.
 
-This project previously claimed the driver-based forecast beat naive *on every
-metric*. That was true of one vintage and false across two. The claim is
-corrected everywhere it appeared, and `tests/test_vintages.py` asserts the
-5-of-6 scorecard so it cannot quietly reappear.
+**The second vintage's first job was to break something.** Every vintage
+carries the prior year's effective tax rate forward, because adidas never
+guides tax. Applied to FY2023 that gave a FY2024 plan built on a **189.2%** tax
+rate — tax expense on a near-zero pre-tax result in the write-off year. It is
+not a conservative assumption, it is a meaningless one, and it cost the
+free-cash-flow forecast 32 points of error on its own, which made the method
+look worse than a naive extrapolation on cash.
 
-The more useful finding is what repeats: **both vintages undershoot operating
-profit**, because adidas guided conservatively in both years and beat its own
-guidance in both. That is a property of the input, not of the arithmetic — and
-it is exactly the kind of systematic bias a single data point cannot reveal.
+The rule is now guarded: a rate outside 10–45% falls back to the median of the
+rates *already published at the time*, never a later year. For FY2024 that is
+FY2022's 34.5% — **higher** than the 26.5% FY2024 actually came in at, so the
+guard makes the forecast more conservative rather than more accurate. A fix
+that happened to flatter the metric being tested would deserve suspicion, and
+`tests/test_vintages.py` asserts that it does not.
+
+What repeats is more useful than what differs: **both vintages undershoot
+operating profit**, because adidas guided conservatively in both years and beat
+its own guidance in both. That is a property of the input, not of the
+arithmetic, and it is exactly the systematic bias one data point cannot
+reveal.
 
 ## Configurability
 
