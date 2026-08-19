@@ -46,3 +46,4 @@ jobs:
       # NEXT_PUBLIC_API_BASE isn't needed to type-check and build — the
       # cockpit fetches from it at runtime, not at build time.
       - run: npm run build
+      - run: npm run typecheck

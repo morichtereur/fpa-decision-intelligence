@@ -98,13 +98,26 @@ def is_available(pack: clientpack.ClientPack) -> bool:
     return all(pack.drivers[d].realised is not None for d in variance_order(pack))
 
 
-def realised_drivers(pack: clientpack.ClientPack) -> dict[str, float]:
+def _substitute(args, spec: dict) -> list:
+    """Fill {year} / {baseline} in a realised fact path from the vintage.
+
+    One declaration in the pack then serves every backtest point, instead of
+    a set of paths hardcoded to whichever year happened to be latest.
+    """
+    return [
+        a.format(year=spec["actual"], baseline=spec["baseline"]) if isinstance(a, str) else a
+        for a in (args if isinstance(args, list) else [args])
+    ]
+
+
+def realised_drivers(pack: clientpack.ClientPack, vintage: str | None = None) -> dict[str, float]:
     """The outturn, expressed in the same drivers the forecast used.
 
     This is what makes the comparison meaningful: the forecast and the outcome
     are described in one vocabulary, so "the margin assumption was wrong by 2.1
     points" is a statement about the same quantity in both.
     """
+    vspec = backtest.VINTAGES[vintage or backtest.DEFAULT_VINTAGE]
     values: dict[str, float] = {}
     for driver_id in variance_order(pack):
         spec = pack.drivers[driver_id].realised
@@ -119,7 +132,7 @@ def realised_drivers(pack: clientpack.ClientPack) -> dict[str, float]:
                 f"Driver {driver_id!r} names realised reader {spec['from']!r} "
                 f"(have: {sorted(REALISED_READERS)})"
             )
-        values[driver_id] = reader(pack.facts, spec["args"])
+        values[driver_id] = reader(pack.facts, _substitute(spec["args"], vspec))
     return values
 
 
@@ -140,27 +153,51 @@ class BridgeStep:
         return self.metric_after - self.metric_before
 
 
-def forecast_drivers(pack: clientpack.ClientPack) -> dict[str, float]:
-    """The forecast's own assumptions, read from the pack rather than restated
-    here, so the bridge starts from the same numbers the planner's base case
-    and the backtest use. A second copy would drift."""
-    base = pack.base_driver_values()
-    return {driver_id: base[driver_id] for driver_id in variance_order(pack)}
+def forecast_drivers(pack: clientpack.ClientPack, vintage: str | None = None) -> dict[str, float]:
+    """What the vintage's plan assumed, taken from backtest.driver_values() so
+    the bridge walks the same numbers the forecast was built from. A second
+    copy of "what did the plan assume" would drift.
+
+    For the default vintage this is identical to the pack's base case by
+    construction — the invariant tests/test_drivers.py asserts.
+    """
+    values = backtest.driver_values(pack.facts, vintage or backtest.DEFAULT_VINTAGE)
+    return {driver_id: values[driver_id] for driver_id in variance_order(pack)}
 
 
-def _metric(pack: clientpack.ClientPack, driver_values: dict[str, float], metric: str) -> float:
-    full = pack.base_driver_values() | driver_values
-    segments_raw = clientpack.read_fact(pack.facts, pack.segments_path)
-    result = model.forecast(pack.baseline_group, segments_raw, pack.to_assumptions(full))
-    return float(result[metric])
+def _vintage_context(pack: clientpack.ClientPack, vintage: str) -> tuple[dict, dict]:
+    """The baseline group and segments the vintage forecasts FROM.
+
+    Taken from the vintage spec rather than the pack, because the pack's
+    baseline is whichever year its current plan starts from. A bridge for an
+    earlier vintage has to start from that vintage's own baseline year or it
+    would be explaining a forecast nobody made.
+    """
+    spec = backtest.VINTAGES[vintage]
+    return pack.facts["group"][spec["baseline"]], pack.facts["product_division"][spec["baseline"]]
 
 
-def _actual_metric(pack: clientpack.ClientPack, metric: str) -> float:
+def _metric(pack: clientpack.ClientPack, driver_values: dict[str, float],
+            metric: str, vintage: str) -> float:
+    group, segments = _vintage_context(pack, vintage)
+    segment_names = [k for k in segments if k != "source"]
+    assumptions = {
+        "division_growth": {k: driver_values["revenue_growth"] / 100 for k in segment_names},
+        "ebitda_margin_pct": driver_values["ebitda_margin"],
+        "effective_tax_rate_pct": driver_values["tax_rate_pct"],
+        "operating_working_capital_pct": driver_values["working_capital_pct"],
+        "capex_eur_m": driver_values["capex_eur_m"],
+    }
+    return float(model.forecast(group, segments, assumptions)[metric])
+
+
+def _actual_metric(pack: clientpack.ClientPack, metric: str, vintage: str) -> float:
     """Actual outturn, derived exactly as src/backtest.py derives it."""
-    return float(backtest.run()["actual"][metric])
+    return float(backtest.run(vintage)["actual"][metric])
 
 
-def bridge(pack: clientpack.ClientPack, metric: str = "free_cash_flow") -> dict:
+def bridge(pack: clientpack.ClientPack, metric: str = "free_cash_flow",
+           vintage: str | None = None) -> dict:
     """Decompose the forecast-to-actual gap in ``metric`` across the drivers.
 
     Returns the steps, what they explain, and what they do not.
@@ -170,19 +207,24 @@ def bridge(pack: clientpack.ClientPack, metric: str = "free_cash_flow") -> dict:
     if not is_available(pack):
         raise VarianceUnavailable(f"Client {pack.id!r} has no actuals to bridge against.")
 
+    vintage = vintage or backtest.DEFAULT_VINTAGE
+    if vintage not in backtest.VINTAGES:
+        raise ValueError(f"Unknown vintage {vintage!r}. Available: {sorted(backtest.VINTAGES)}")
+    vspec = backtest.VINTAGES[vintage]
+
     order = variance_order(pack)
-    forecast_values = forecast_drivers(pack)
-    actual_values = realised_drivers(pack)
+    forecast_values = forecast_drivers(pack, vintage)
+    actual_values = realised_drivers(pack, vintage)
 
     current = dict(forecast_values)
-    running = _metric(pack, current, metric)
+    running = _metric(pack, current, metric, vintage)
     forecast_metric = running
 
     steps: list[BridgeStep] = []
     for driver_id in order:
         before = running
         current[driver_id] = actual_values[driver_id]
-        running = _metric(pack, current, metric)
+        running = _metric(pack, current, metric, vintage)
         spec = pack.drivers[driver_id]
         steps.append(
             BridgeStep(
@@ -196,13 +238,15 @@ def bridge(pack: clientpack.ClientPack, metric: str = "free_cash_flow") -> dict:
             )
         )
 
-    actual_metric = _actual_metric(pack, metric)
+    actual_metric = _actual_metric(pack, metric, vintage)
     explained = running - forecast_metric
     total = actual_metric - forecast_metric
     gross = sum(abs(s.impact) for s in steps)
 
     return {
         "client": pack.id,
+        "vintage": vintage,
+        "vintage_label": vspec["label"],
         "metric": metric,
         "forecast": round(forecast_metric, 1),
         "actual": round(actual_metric, 1),

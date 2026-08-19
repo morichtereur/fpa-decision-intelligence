@@ -19,10 +19,28 @@ BASE = clientpack.CLIENTS_DIR / "adidas"
 @pytest.fixture
 def pack_dir(tmp_path):
     """A working copy of the adidas pack, for tests to break in one specific
-    way each."""
+    way each.
+
+    The adidas pack points at the extractor's generated facts document rather
+    than holding a copy, so the copy has to reproduce that layout: the pack at
+    <tmp>/clients/trial and the facts where its relative path resolves to,
+    <tmp>/data/facts. Copying the pack directory alone would give an
+    unloadable pack, which is the cost of not duplicating generated data.
+    """
+    from src import config as C
+
     target = tmp_path / "clients" / "trial"
     shutil.copytree(BASE, target)
+
+    facts_dest = tmp_path / "data" / "facts"
+    facts_dest.mkdir(parents=True)
+    shutil.copy(C.FACTS / "adidas_drivers.json", facts_dest / "adidas_drivers.json")
     return target
+
+
+def facts_file(pack_dir):
+    """Where the copied pack's client.yaml resolves its facts to."""
+    return pack_dir.parent.parent / "data" / "facts" / "adidas_drivers.json"
 
 
 def _edit(path, replace: str, with_: str):
@@ -110,7 +128,7 @@ def test_fact_path_that_does_not_exist_is_rejected(pack_dir):
 
 
 def test_missing_facts_document_is_rejected(pack_dir):
-    (pack_dir / "facts.json").unlink()
+    facts_file(pack_dir).unlink()
     with pytest.raises(clientpack.ClientPackError, match="Missing facts document"):
         load(pack_dir)
 
@@ -128,7 +146,7 @@ def test_a_delta_with_no_base_is_rejected(pack_dir):
 def test_resolvers_produce_the_documented_values(pack_dir):
     """The four baseline forms, checked against arithmetic done by hand
     rather than against the loader's own output."""
-    facts = json.loads((pack_dir / "facts.json").read_text())
+    facts = json.loads(facts_file(pack_dir).read_text())
     guidance = facts["guidance"]["fy2025_initial"]
 
     assert clientpack.resolve_scalar(facts, {"literal": 8.0}) == 8.0
@@ -166,3 +184,29 @@ def test_add_and_delta_roles_behave_differently(pack_dir):
     # DPO carries the opposite sign: paying later releases cash.
     later = dict(values, dpo_days=values["dpo_days"] + 1)
     assert demo.to_assumptions(later)["operating_working_capital_pct"] < base_wc
+
+
+def test_adidas_reads_the_extractors_output_directly():
+    """One generated facts document, one reader.
+
+    The adidas pack held its own copy of data/facts/adidas_drivers.json until
+    the FY2023 report was added, at which point the copy went stale and the
+    pack served a facts document with no FY2024 guidance in it — while every
+    test passed, because the tests read the other copy. A second physical copy
+    of generated data is a drift waiting to happen.
+    """
+    from src import config as C
+
+    pack = clientpack.load_pack("adidas")
+    generated = json.loads((C.FACTS / "adidas_drivers.json").read_text())
+
+    assert pack.facts == generated
+    assert not (clientpack.CLIENTS_DIR / "adidas" / "facts.json").exists(), (
+        "a copy has reappeared inside the pack; point client.yaml at the generated file instead"
+    )
+
+
+def test_a_hand_authored_pack_still_carries_its_own_facts():
+    """The manufacturer's facts are written by hand, not generated, so they
+    belong inside its pack. The two clients differ here for a reason."""
+    assert (clientpack.CLIENTS_DIR / "manufacturing_demo" / "facts.json").exists()

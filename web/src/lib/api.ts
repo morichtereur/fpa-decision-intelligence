@@ -67,6 +67,8 @@ export const api = {
   mappings: (c?: ClientId) =>
     request<Record<string, MetricMapping>>(scoped("/api/mappings", c)),
   priorities: (c?: ClientId) => request<PrioritiesResponse>(scoped("/api/priorities", c)),
+  varianceVintages: (metric = "free_cash_flow", c?: ClientId) =>
+    request<VarianceBridgeResponse[] | null>(scoped(`/api/variance-vintages/${metric}`, c)),
   variance: (metric = "free_cash_flow", c?: ClientId) =>
     request<VarianceBridgeResponse | null>(scoped(`/api/variance/${metric}`, c)),
   decisionBrief: (c?: ClientId) => request<DecisionBriefResponse>(scoped("/api/decision-brief", c)),

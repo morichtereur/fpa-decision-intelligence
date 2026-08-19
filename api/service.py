@@ -389,7 +389,8 @@ def get_decision_brief(driver_values: dict | None = None, client: str | None = N
 
 
 @lru_cache(maxsize=32)
-def get_variance_bridge(metric: str = "free_cash_flow", client: str | None = None) -> dict | None:
+def get_variance_bridge(metric: str = "free_cash_flow", client: str | None = None,
+                        vintage: str | None = None) -> dict | None:
     """Why the forecast missed, decomposed across the drivers.
 
     None where the client has no outturn to bridge against — the same honesty
@@ -399,7 +400,17 @@ def get_variance_bridge(metric: str = "free_cash_flow", client: str | None = Non
     p = pack(client)
     if not variance.is_available(p):
         return None
-    return variance.bridge(p, metric)
+    return variance.bridge(p, metric, vintage)
+
+
+@lru_cache(maxsize=8)
+def get_variance_bridges(metric: str = "free_cash_flow", client: str | None = None) -> list[dict] | None:
+    """One bridge per vintage. Two years of "why it missed" show whether the
+    same assumption keeps failing — which, for adidas, it does."""
+    p = pack(client)
+    if not variance.is_available(p):
+        return None
+    return [variance.bridge(p, metric, v) for v in backtest.VINTAGES]
 
 
 def variance_available(client: str | None = None) -> bool:

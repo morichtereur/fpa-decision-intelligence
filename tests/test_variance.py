@@ -171,3 +171,67 @@ def test_bridge_is_served_per_client():
 
     assert service.get_variance_bridge("free_cash_flow", "adidas") is not None
     assert service.get_variance_bridge("free_cash_flow", "manufacturing_demo") is None
+
+
+# --------------------------------------------------------------------------
+# Every vintage, not just the latest
+# --------------------------------------------------------------------------
+
+@pytest.mark.parametrize("vintage", sorted(__import__("src.backtest", fromlist=["x"]).VINTAGES))
+def test_the_bridge_runs_for_every_vintage(pack, vintage):
+    result = variance.bridge(pack, "free_cash_flow", vintage)
+    assert result["vintage"] == vintage
+    assert {s["driver_id"] for s in result["steps"]} == set(variance.variance_order(pack))
+
+
+@pytest.mark.parametrize("vintage", ["fy2024", "fy2025"])
+def test_each_vintage_bridges_its_own_years_actuals(pack, vintage):
+    """A bridge for an earlier vintage must read that year's outturn, not the
+    latest one. The realised fact paths carry {year} placeholders for exactly
+    this reason."""
+    from src import backtest
+
+    spec = backtest.VINTAGES[vintage]
+    realised = variance.realised_drivers(pack, vintage)
+    group = pack.facts["group"][spec["actual"]]
+
+    assert realised["capex_eur_m"] == group["capex"]
+    assert realised["working_capital_pct"] == group["operating_working_capital_pct"]
+
+
+@pytest.mark.parametrize("vintage", ["fy2024", "fy2025"])
+def test_each_vintage_starts_from_its_own_plan(pack, vintage):
+    """The bridge's opening value must be that vintage's forecast, not the
+    pack's current plan — otherwise it explains a forecast nobody made."""
+    from src import backtest
+
+    result = variance.bridge(pack, "free_cash_flow", vintage)
+    reference = backtest.run(vintage)
+    assert result["forecast"] == pytest.approx(reference["driver_based"]["free_cash_flow"], abs=0.2)
+    assert result["actual"] == pytest.approx(reference["actual"]["free_cash_flow"], abs=0.2)
+
+
+def test_working_capital_dominates_the_miss_in_both_years_in_opposite_directions(pack):
+    """The finding two vintages make available and one cannot.
+
+    Working capital is the largest single contributor to the free-cash-flow
+    variance in both years, and it moves in opposite directions: a release
+    nobody forecast in FY2024, a build nobody forecast in FY2025. The driver
+    the materiality engine ranks first is the one that has actually driven the
+    forecast error — the ranking and the backtest agree.
+    """
+    impacts = {}
+    for vintage in ("fy2024", "fy2025"):
+        steps = variance.bridge(pack, "free_cash_flow", vintage)["steps"]
+        largest = max(steps, key=lambda s: abs(s["impact"]))
+        impacts[vintage] = largest
+
+    assert impacts["fy2024"]["driver_id"] == "working_capital_pct"
+    assert impacts["fy2025"]["driver_id"] == "working_capital_pct"
+    assert impacts["fy2024"]["impact"] > 0, "FY2024 was an unforecast release"
+    assert impacts["fy2025"]["impact"] < 0, "FY2025 was an unforecast build"
+
+
+def test_unknown_vintage_is_rejected_by_the_bridge(pack):
+    with pytest.raises(ValueError, match="Unknown vintage"):
+        variance.bridge(pack, "free_cash_flow", "fy1999")

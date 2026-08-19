@@ -162,6 +162,16 @@ Realised values are read from reported figures declared in the client pack,
 never back-solved to make the bridge close. A client with no outturn gets no
 bridge rather than one drawn against invented actuals.
 
+**Run across both vintages, it produces the strongest result in this project.**
+The same assumption dominates the free-cash-flow miss in both years, in
+opposite directions: working capital was planned at 23.5% of sales for FY2024
+and came in at 19.7% — an unforecast release worth **+€900m** — then planned at
+21.5% for FY2025 and came in at 23.0%, a build worth **−€372m**.
+
+The driver the materiality engine ranks first for management attention is the
+one that has actually driven the forecast error, twice and in both directions.
+The ranking and the backtest agree, and neither was tuned to the other.
+
 ## Decision materiality
 
 The ranking that answers *where should management spend its next 30 minutes*
@@ -452,7 +462,7 @@ make web                     # Next.js on :3000
 
 ```bash
 .venv/bin/python -m pytest tests/ -q                        # 231
-cd web && npm test && npm run lint && npm run build && npx tsc --noEmit   # 13
+cd web && npm test && npm run lint && npm run build && npm run typecheck   # 13
 ```
 
 The component tests are regressions, not coverage. Every rendering defect this
@@ -463,8 +473,11 @@ and passed the entire Python suite. They were caught by looking at the page.
 Each one now has a test that fails if it returns, verified by reintroducing
 the bug and watching it fail.
 
-`npx tsc --noEmit` must run *after* `npm run build`: `LayoutProps` is a Next 16
-generated global that only exists once `.next/types` has been written.
+`npm run typecheck` must run *after* `npm run build`: `LayoutProps` is a Next 16
+generated global that only exists once `.next/types` has been written. The
+script also strips the `file 2.ts` duplicates macOS drops into `.next/types`,
+which otherwise fail the check with a conflict that has nothing to do with the
+source.
 
 The adidas facts are committed; the source PDFs are not (see
 `data/raw/README.md`). Commentary needs a provider key and degrades to

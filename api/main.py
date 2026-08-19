@@ -135,6 +135,15 @@ def backtest_vintages(client: str | None = ClientQuery):
     return service.get_backtest_vintages(_client(client))
 
 
+@app.get("/api/variance-vintages/{metric}")
+def variance_vintages(metric: str = "free_cash_flow", client: str | None = ClientQuery):
+    """The forecast-to-actual bridge for every vintage."""
+    try:
+        return service.get_variance_bridges(metric, _client(client))
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
 @app.get("/api/variance/{metric}")
 def variance_bridge(metric: str = "free_cash_flow", client: str | None = ClientQuery):
     """Forecast-to-actual variance, decomposed across the client's drivers.

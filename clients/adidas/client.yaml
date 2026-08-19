@@ -23,7 +23,15 @@ baseline_year: "FY2024"
 # most correctable forecast error.
 objective: "Free Cash Flow"
 
-facts: "facts.json"
+# adidas's facts are GENERATED from the annual-report PDFs by src/extract.py,
+# unlike the manufacturer's, which are hand-authored and live inside its pack.
+# So this points at the extractor's output rather than holding a copy of it.
+#
+# It held a copy until the FY2023 report was added, at which point the copy
+# silently went stale and the pack was serving a facts document with no FY2024
+# guidance in it. One generated file, one reader — see
+# tests/test_clientpack.py::test_adidas_reads_the_extractors_output_directly.
+facts: "../../data/facts/adidas_drivers.json"
 
 # Where the engine finds the two things model.forecast() needs. Naming these
 # as paths rather than hardcoding them is what lets a client with different

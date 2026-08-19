@@ -168,3 +168,16 @@
   border-left: 2px solid var(--color-negative);
   font-size: var(--text-sm);
 }
+
+/* Two bridges on one screen: each needs its own heading, and enough air that
+   the reader does not read the second table as a continuation of the first. */
+.bridgeBlock {
+  margin-top: var(--space-6);
+}
+
+.bridgeHeading {
+  font-size: var(--text-lg);
+  padding-bottom: var(--space-2);
+  margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}

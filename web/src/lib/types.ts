@@ -288,6 +288,8 @@ export interface VarianceStep {
 
 export interface VarianceBridgeResponse {
   client: string;
+  vintage: string;
+  vintage_label: string;
   metric: string;
   forecast: number;
   actual: number;

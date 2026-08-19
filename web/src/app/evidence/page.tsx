@@ -27,11 +27,11 @@ export default async function ForecastRiskPage({
   searchParams: Promise<SearchParams>;
 }) {
   const client = clientFrom(await searchParams);
-  const [backtest, monteCarlo, summary, variance, vintages] = await Promise.all([
+  const [backtest, monteCarlo, summary, bridges, vintages] = await Promise.all([
     api.backtest(client),
     api.monteCarlo(client),
     api.client(client),
-    api.variance("free_cash_flow", client),
+    api.varianceVintages("free_cash_flow", client),
     api.backtestVintages(client),
   ]);
 
@@ -99,19 +99,32 @@ export default async function ForecastRiskPage({
         )}
       </section>
 
-      {variance && (
+      {bridges && bridges.length > 0 && (
         <section className={styles.section}>
           <h2 className={styles.sectionHeading}>Why it missed</h2>
           <p className={styles.sectionIntro}>
-            The backtest says by how much. This says which assumption was wrong — each driver
+            The scorecard says by how much. This says which assumption was wrong — each driver
             walked from what was forecast to what was reported, one at a time, with whatever the
             drivers do not explain left visible as a residual rather than absorbed into the last
-            step. {variance.order_note}
+            step. {bridges[0].order_note}
           </p>
-          {variance.offsetting_note && (
-            <p className={styles.offsetting}>{variance.offsetting_note}</p>
-          )}
-          <VarianceBridge bridge={variance} />
+          <p className={styles.offsetting}>
+            The same assumption dominates both years, in opposite directions. Working capital was
+            forecast at 23.5% of sales for FY2024 and came in at 19.7% — a release worth{" "}
+            <span className="mono">+€900m</span> of cash nobody planned for. A year later it was
+            forecast at 21.5% and came in at 23.0%, a build worth <span className="mono">−€372m</span>.
+            The driver this model ranks first for management attention is the one that has
+            actually driven the forecast error, twice.
+          </p>
+          {bridges.map((bridge) => (
+            <div key={bridge.vintage} className={styles.bridgeBlock}>
+              <h3 className={styles.bridgeHeading}>{bridge.vintage_label}</h3>
+              {bridge.offsetting_note && (
+                <p className={styles.offsetting}>{bridge.offsetting_note}</p>
+              )}
+              <VarianceBridge bridge={bridge} />
+            </div>
+          ))}
         </section>
       )}
 

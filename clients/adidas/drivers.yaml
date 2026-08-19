@@ -6,6 +6,11 @@
 # tests/test_drivers.py — the planner's Base case is the backtested
 # forecast, not a lookalike.
 #
+# `realised` says how each driver's actual outturn is read back out of the
+# facts, for the forecast-to-actual variance bridge. `{year}` and `{baseline}`
+# are substituted per vintage, so one declaration serves every backtest point
+# rather than one hardcoded to FY2025.
+#
 # `confidence` and `controllability` are declared judgements, not computed.
 # Confidence reflects how firmly adidas disclosed the assumption.
 # Controllability reflects how far management can move it within the
@@ -44,8 +49,8 @@ drivers:
     maps_to: "division_growth"
     realised:
       from: growth_rate
-      args: ["group.2024.net_sales", "group.2025.net_sales"]
-      source: "FY2025 net sales over FY2024 net sales, as reported"
+      args: ["group.{baseline}.net_sales", "group.{year}.net_sales"]
+      source: "net sales over the prior year, as reported"
     sensitivity_key: "growth"
     scale: 0.01                # the model wants a fraction, the UI shows a percentage
     impacts: ["revenue", "operating_profit", "free_cash_flow"]
@@ -85,8 +90,8 @@ drivers:
     maps_to: "ebitda_margin_pct"
     realised:
       from: ratio
-      args: ["group.2025.ebitda", "group.2025.net_sales"]
-      source: "FY2025 EBITDA over FY2025 net sales, as reported"
+      args: ["group.{year}.ebitda", "group.{year}.net_sales"]
+      source: "EBITDA over net sales, as reported"
     sensitivity_key: "operating_profit_target"
     impacts: ["operating_profit", "free_cash_flow"]
     guidance_text: >-
@@ -115,8 +120,8 @@ drivers:
     maps_to: "operating_working_capital_pct"
     realised:
       from: fact
-      args: ["group.2025.operating_working_capital_pct"]
-      source: "FY2025 operating working capital as a percentage of net sales, as disclosed"
+      args: ["group.{year}.operating_working_capital_pct"]
+      source: "average operating working capital as a percentage of net sales, as disclosed"
     sensitivity_key: "working_capital_pct"
     impacts: ["free_cash_flow"]
     guidance:
@@ -144,8 +149,8 @@ drivers:
     maps_to: "capex_eur_m"
     realised:
       from: fact
-      args: ["group.2025.capex"]
-      source: "FY2025 capital expenditure, as reported"
+      args: ["group.{year}.capex"]
+      source: "capital expenditure, as reported"
     sensitivity_key: "capex"
     impacts: ["free_cash_flow"]
     guidance_text: "adidas FY2025 guidance: around €600m"
@@ -167,8 +172,8 @@ drivers:
     maps_to: "effective_tax_rate_pct"
     realised:
       from: fact
-      args: ["group.2025.effective_tax_rate_pct"]
-      source: "FY2025 effective tax rate, as reported"
+      args: ["group.{year}.effective_tax_rate_pct"]
+      source: "effective tax rate, as reported"
     sensitivity_key: null
     impacts: ["free_cash_flow"]
     guidance_text: >-
