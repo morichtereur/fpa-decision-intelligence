@@ -31,6 +31,11 @@ only on a key with a spend cap, because the endpoint is public.
 1. New Project → import this repository.
 2. **Set the root directory to `web/`.** Without this, Vercel reads the root
    `vercel.json` and tries to deploy the API as a Python function instead.
+
+   The framework is declared in `web/vercel.json`, so the preset should read
+   **Next.js** on its own. If it says *Other*, the deploy will fail after a
+   successful build with `No Output Directory named "public" found` — the
+   build produced `.next` while Vercel was looking for a static site.
 3. Add one environment variable, for all environments:
 
    ```
