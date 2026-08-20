@@ -33,7 +33,10 @@ only on a key with a spend cap, because the endpoint is public.
    `vercel.json` and tries to deploy the API as a Python function instead.
 
    The framework is declared in `web/vercel.json`, so the preset should read
-   **Next.js** on its own. If it says *Other*, the deploy will fail after a
+   **Next.js** on its own. That file holds nothing else: Vercel validates
+   `vercel.json` against a strict schema and rejects unknown keys, including
+   the `"//"` convention people use for comments. Anything explanatory about
+   these files belongs here, not in them. If it says *Other*, the deploy will fail after a
    successful build with `No Output Directory named "public" found` — the
    build produced `.next` while Vercel was looking for a static site.
 3. Add one environment variable, for all environments:

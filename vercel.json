@@ -1,6 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "//": "Only used if the API is deployed to Vercel as a serverless function instead of Render. The chosen split runs the API on Render, so the Vercel project should set its root directory to `web/` and this file is then ignored.",
   "builds": [{ "src": "api/index.py", "use": "@vercel/python" }],
   "routes": [{ "src": "/(.*)", "dest": "/api/index.py" }]
 }

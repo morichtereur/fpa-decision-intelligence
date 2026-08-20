@@ -1,5 +1,4 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "//": "Declaring the framework explicitly rather than relying on auto-detection. With a vercel.json present and no framework named, Vercel treats the project as a static site and looks for a public/ directory after the build — so the Next.js build succeeds and the deploy then fails with 'No Output Directory named public'. Naming it here keeps the fix in the repository instead of in a dashboard setting nobody can see.",
   "framework": "nextjs"
 }
