@@ -1,0 +1,50 @@
+/* Shown when the API cannot be reached. Deliberately informative rather than
+   apologetic: the person seeing this is usually the person who can fix it, and
+   the two things they need are which address was tried and why it might be
+   asleep. */
+.panel {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: var(--space-7) var(--space-5) var(--space-8);
+}
+
+.eyebrow { display: block; margin-bottom: var(--space-3); }
+
+.heading {
+  font-size: var(--text-2xl);
+  max-width: 24ch;
+  text-wrap: balance;
+}
+
+.body {
+  max-width: 62ch;
+  margin: var(--space-4) 0 var(--space-5);
+  color: var(--color-text-secondary);
+}
+
+.rows { margin: 0; display: grid; grid-template-columns: 8rem 1fr; column-gap: var(--space-5); }
+
+.term {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.definition {
+  margin: 0;
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--color-border);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 40rem) {
+  .rows { grid-template-columns: 1fr; }
+  .term { padding-bottom: 0; }
+  .definition { border-top: none; padding-top: var(--space-1); }
+}

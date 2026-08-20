@@ -17,7 +17,10 @@ import type {
   ScenarioResponse,
 } from "./types";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
+/** Exported so an unreachable-API page can name the address it tried. The two
+ *  failures that look identical from outside — service asleep, and frontend
+ *  built against the wrong host — need opposite responses. */
+export const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8000";
 
 /** Which planning model the request is against. Threaded explicitly through
  *  every call rather than held in module state: a server component rendering
