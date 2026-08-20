@@ -29,8 +29,16 @@ only on a key with a spend cap, because the endpoint is public.
 ## 2. Frontend — Vercel
 
 1. New Project → import this repository.
-2. **Set the root directory to `web/`.** Without this, Vercel reads the root
-   `vercel.json` and tries to deploy the API as a Python function instead.
+2. **Set the root directory to `web/`.**
+
+   There is deliberately **no `vercel.json` at the repository root**. One used
+   to live there from the single-host setup, routing every request to
+   `api/index.py`. Even with the root directory set to `web/` and the Next.js
+   build succeeding, Vercel applied that routing at runtime: every request —
+   the home page, the 404, even `/favicon.ico` — was handed to a Python
+   function that cannot import in that environment, and every page returned
+   `FUNCTION_INVOCATION_FAILED`. The build looked perfect; only the runtime
+   logs showed it. If you ever add a root `vercel.json` back, expect this.
 
    The framework is declared in `web/vercel.json`, so the preset should read
    **Next.js** on its own. That file holds nothing else: Vercel validates
