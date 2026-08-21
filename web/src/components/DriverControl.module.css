@@ -161,7 +161,8 @@
 }
 
 .slider:focus-visible {
-  outline: 2px solid var(--color-accent);
+  /* Wider offset than the global rule: the thumb sits on a track with the
+     guidance band drawn behind it, and a 2px ring would touch that band. */
   outline-offset: 4px;
 }
 

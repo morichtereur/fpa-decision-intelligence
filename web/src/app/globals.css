@@ -27,11 +27,18 @@
   /* Priority states. Colour is spent on Critical alone — the one state that
      warrants alarm. Act, Review and Monitor separate by weight of ink, not by
      hue, so a screen of Monitor rows reads as calm rather than as a traffic
-     light with three of its lamps lit. */
-  --priority-critical: var(--color-negative);
-  --priority-act: var(--color-text-primary);
-  --priority-review: var(--color-border-strong);
-  --priority-monitor: var(--color-border);
+     light with three of its lamps lit.
+     
+     The scale starts at the border-strong tone rather than the hairline one.
+     These tokens paint the exposure bars, which carry meaning rather than
+     decorate, so every step has to clear 3:1 against the page (WCAG 1.4.11).
+     The hairline itself is 1.38:1 and stays there — a rule that only
+     separates rows is exempt, and darkening it would coarsen every table in
+     the product to fix a bar that is no longer using it. */
+  --priority-critical: var(--color-negative);      /*  4.76:1 */
+  --priority-act: var(--color-text-primary);       /* 14.63:1 */
+  --priority-review: var(--color-text-secondary);  /*  5.15:1 */
+  --priority-monitor: var(--color-border-strong);  /*  3.14:1 */
 
   /* Typography — grotesque display over serif body, mono for anything
      that is data rather than prose. Numbers are always mono: tabular
@@ -104,6 +111,19 @@ h4 {
 
 a {
   color: inherit;
+}
+
+/* One focus indicator for the whole product.
+   Three components styled their own and everything else — the primary nav,
+   the scenario presets, every "more" link — fell back to whatever ring the
+   browser draws, which differs by browser and sits oddly against this palette.
+   Declaring it once covers every control, including ones not written yet, and
+   means a future `outline: none` has something deliberate to override rather
+   than a default nobody noticed. */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius);
 }
 
 button {

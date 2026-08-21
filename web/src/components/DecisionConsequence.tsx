@@ -61,7 +61,16 @@ export default function DecisionConsequence({
         )}
       </div>
 
-      <p className={styles.lede}>{lede}</p>
+      {/* The one live region on the page. Moving a slider rewrites the whole
+          results column — the comparison table, the bridge, the thresholds —
+          and a screen reader announced none of it. Marking the summary
+          sentence polite announces exactly what changed and why it matters,
+          once per update. Marking the results column itself live would read
+          out every figure in it on every keystroke, which is worse than
+          silence. */}
+      <p className={styles.lede} aria-live="polite">
+        {lede}
+      </p>
 
       {breached.length > 0 && (
         <ul className={styles.breaches}>
