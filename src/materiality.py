@@ -89,7 +89,7 @@ def band_exposure(exposure: float, thresholds: dict) -> str:
     return "Low"
 
 
-def exposure_range(pack: clientpack.ClientPack, driver_id: str) -> tuple[float, float, str]:
+def exposure_range(pack: clientpack.ClientPack, driver_id: str) -> tuple[float, float, str] | None:
     """The range a driver is swung across to size its exposure, and where that
     range came from.
 
@@ -105,10 +105,7 @@ def exposure_range(pack: clientpack.ClientPack, driver_id: str) -> tuple[float, 
         return low, high, "stated plausible range"
     if spec.guidance_low is not None and spec.guidance_high is not None:
         return spec.guidance_low, spec.guidance_high, "disclosed guidance range"
-    raise clientpack.ClientPackError(
-        f"Driver {driver_id!r} in client {pack.id!r} has neither an exposure_range nor a "
-        f"guidance range, so its exposure cannot be sized honestly. Declare one."
-    )
+    return None
 
 
 def _forecast(pack: clientpack.ClientPack, values: dict) -> dict:
@@ -144,7 +141,15 @@ def driver_exposure(pack: clientpack.ClientPack, driver_id: str) -> dict:
     the FCF bridge carries, and stated for the same reason.
     """
     metric = objective_metric(pack)
-    low, high, basis = exposure_range(pack, driver_id)
+    bounds = exposure_range(pack, driver_id)
+    if bounds is None:
+        # No plausible range has been agreed, so there is no exposure to
+        # compute. Saying so is the honest answer; inventing a range around the
+        # baseline would put a euro figure on a judgement nobody has made.
+        return {"driver_id": driver_id, "metric": metric, "quantified": False,
+                "unit": pack.drivers[driver_id].unit, "exposure": 0.0,
+                "exposure_magnitude": 0.0, "per_unit": 0.0, "range_basis": "no range declared"}
+    low, high, basis = bounds
     base_values = pack.base_driver_values()
 
     at_low = _forecast(pack, dict(base_values, **{driver_id: low}))[metric]
@@ -160,6 +165,7 @@ def driver_exposure(pack: clientpack.ClientPack, driver_id: str) -> dict:
     return {
         "driver_id": driver_id,
         "metric": metric,
+        "quantified": True,
         "range_low": low,
         "range_high": high,
         "range_basis": basis,
@@ -177,6 +183,20 @@ def driver_exposure(pack: clientpack.ClientPack, driver_id: str) -> dict:
 def assess_driver(pack: clientpack.ClientPack, driver_id: str, thresholds: dict) -> dict:
     spec = pack.drivers[driver_id]
     exposure = driver_exposure(pack, driver_id)
+
+    if not exposure["quantified"]:
+        return {
+            **exposure, "label": spec.label, "category": spec.category, "owner": spec.owner,
+            "confidence": spec.confidence, "materiality": "Not quantified",
+            "uncertainty": CONFIDENCE_TO_UNCERTAINTY[spec.confidence],
+            "controllability": spec.controllability, "priority": "Unranked",
+            "basis": {"materiality": "not computed", "uncertainty": "declared",
+                      "controllability": "declared"},
+            "rationale": (
+                f"No plausible range has been agreed for {spec.label.lower()}, so its exposure "
+                f"cannot be sized. It is shown here rather than hidden, and ranked nowhere."
+            ),
+        }
 
     materiality = band_exposure(exposure["exposure_magnitude"], thresholds)
     uncertainty = CONFIDENCE_TO_UNCERTAINTY[spec.confidence]
@@ -248,7 +268,10 @@ def rank(pack: clientpack.ClientPack) -> list[dict]:
     """
     thresholds = pack.materiality_thresholds
     rows = [assess_driver(pack, driver_id, thresholds) for driver_id in pack.driver_order]
-    rows.sort(key=lambda r: (_PRIORITY_ORDER[r["priority"]], -r["exposure_magnitude"]))
+    # Unranked rows sort last: they are part of the model and absent from the
+    # ordering, which is exactly their status.
+    rows.sort(key=lambda r: (_PRIORITY_ORDER.get(r["priority"], len(PRIORITIES)),
+                             -r["exposure_magnitude"]))
     return rows
 
 

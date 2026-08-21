@@ -13,6 +13,7 @@ import type {
   PresetsResponse,
   MetricMapping,
   PrioritiesResponse,
+  Readiness,
   VarianceBridgeResponse,
   ScenarioResponse,
 } from "./types";
@@ -69,6 +70,7 @@ export const api = {
   assumptions: (c?: ClientId) => request<AssumptionRow[]>(scoped("/api/assumptions", c)),
   mappings: (c?: ClientId) =>
     request<Record<string, MetricMapping>>(scoped("/api/mappings", c)),
+  readiness: (c?: ClientId) => request<Readiness>(scoped("/api/readiness", c)),
   priorities: (c?: ClientId) => request<PrioritiesResponse>(scoped("/api/priorities", c)),
   varianceVintages: (metric = "free_cash_flow", c?: ClientId) =>
     request<VarianceBridgeResponse[] | null>(scoped(`/api/variance-vintages/${metric}`, c)),

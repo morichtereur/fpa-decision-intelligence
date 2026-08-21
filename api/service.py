@@ -21,7 +21,7 @@ from functools import lru_cache
 import numpy as np
 
 from src import (backtest, claims, clientpack, commentary, config as C, decisions,
-                 materiality, model, scenario, variance)
+                 materiality, model, readiness, scenario, variance)
 
 
 def pack(client: str | None = None) -> clientpack.ClientPack:
@@ -415,6 +415,16 @@ def get_variance_bridges(metric: str = "free_cash_flow", client: str | None = No
 
 def variance_available(client: str | None = None) -> bool:
     return variance.is_available(pack(client))
+
+
+@lru_cache(maxsize=8)
+def get_readiness(client: str | None = None) -> dict:
+    """What the planning model can and cannot answer about itself.
+
+    The one output useful before the numbers are trusted — on day one of an
+    engagement the drivers are half-agreed and nobody has settled a plausible
+    range, and this reports that rather than refusing to open."""
+    return readiness.assess(pack(client))
 
 
 def get_decision_rules(client: str | None = None) -> list[dict]:

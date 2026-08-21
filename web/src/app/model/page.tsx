@@ -3,6 +3,7 @@ import { clientFrom, type SearchParams } from "@/lib/client";
 import DriverTree from "@/components/DriverTree";
 import AssumptionRegister from "@/components/AssumptionRegister";
 import MetricMap from "@/components/MetricMap";
+import ModelReadiness from "@/components/ModelReadiness";
 import styles from "./model.module.css";
 
 export const dynamic = "force-dynamic";
@@ -13,11 +14,12 @@ export default async function ModelPage({
   searchParams: Promise<SearchParams>;
 }) {
   const client = clientFrom(await searchParams);
-  const [assumptions, summary, drivers, mappings] = await Promise.all([
+  const [assumptions, summary, drivers, mappings, readiness] = await Promise.all([
     api.assumptions(client),
     api.client(client),
     api.drivers(client),
     api.mappings(client),
+    api.readiness(client),
   ]);
 
   return (
@@ -30,6 +32,17 @@ export default async function ModelPage({
         which is where a client&rsquo;s economics live. The model is authoritative — this page is
         a window into it, not a separate description of it.
       </p>
+
+      <section className={styles.section}>
+        <h2 className={styles.sectionHeading}>What this model can answer</h2>
+        <p className={styles.sectionIntro}>
+          Before the numbers are worth arguing about, the model has to be able to say who owns
+          each driver, how far it could plausibly move, and what level would be worth a
+          conversation. Most planning models cannot, and that is a finding rather than an
+          obstacle to one.
+        </p>
+        <ModelReadiness readiness={readiness} />
+      </section>
 
       <section className={styles.section}>
         <h2 className={styles.sectionHeading}>Calculation chain</h2>

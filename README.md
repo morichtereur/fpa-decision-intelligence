@@ -181,6 +181,58 @@ The driver the materiality engine ranks first for management attention is the
 one that has actually driven the forecast error, twice and in both directions.
 The ranking and the backtest agree, and neither was tuned to the other.
 
+## Standing up a new client
+
+A client pack is five YAML files and a facts document. Hand-written that is a
+developer task, which meant the accelerator could *demonstrate* configurability
+without anyone being able to use it. An intake workbook closes that:
+
+```bash
+make template CLIENT=acme        # a formatted workbook to fill in
+make onboard FILE=acme.xlsx      # a complete, validated client pack
+```
+
+The workbook is not a data-entry form. Its columns are the questions an FP&A
+diagnostic asks — what is the plausible range, who owns this, can management
+move it inside the year, what level is worth a conversation — so **filling it
+in is a structured interview whose output happens to be executable**.
+
+Nothing is defaulted. A blank cell stays blank and surfaces as a gap, because a
+pack that looks complete and is not is worse than one that is visibly
+unfinished. The generated pack is loaded back through the real loader before
+the command returns, so an intake either produces something that runs or fails
+with the sheet and row that is wrong.
+
+## Model readiness — the output that works on day one
+
+Most planning models cannot say who owns a driver, how far it could plausibly
+move, or what level would be worth a conversation. **That is the finding**, and
+it is available before a single number has been validated.
+
+The Model screen reports what the planning model cannot answer about itself:
+
+```
+Acme's planning model answers 3 of 11 questions.
+  GAP  Do the drivers have a named owner?              0 of 5 drivers
+  GAP  Is a plausible range declared for each driver?  2 of 5 drivers
+  GAP  Are management tolerances defined?              0 tolerances defined
+  GAP  Can the forecast be tested against what happened?
+```
+
+It counts rather than scores. A composite index would invite comparison
+between businesses whose situations are not comparable, and "0 of 5 drivers
+have a named owner" is a sentence someone can act on in a way that "readiness
+62%" is not. It reads the model's completeness, not the quality of the finance
+function — a driver with no owner may be one nobody needs to own.
+
+An incomplete model **opens**. A driver with no agreed range is carried as
+*Not quantified* and ranked nowhere, rather than blocking the whole model —
+which is what the loader used to do, and which made the product unusable at
+exactly the moment it would be introduced.
+
+Every screen prints. `Cmd-P` on the Decision Brief or Priorities produces a
+one-pager that can go into a pack without being screenshotted.
+
 ## Decision materiality
 
 The ranking that answers *where should management spend its next 30 minutes*

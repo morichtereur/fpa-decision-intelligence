@@ -161,3 +161,67 @@ button {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Print.
+   Consulting output is a pack, not a URL. The Decision Brief and the
+   Priorities ranking are already the right shape for a one-pager — they just
+   could not leave the browser. Cmd-P now produces something that can go into a
+   steering committee deck without being screenshotted.
+
+   Ink, not screen: white ground, black text, no surface tints. The navigation
+   and every control go, because a printed page cannot be navigated and a
+   greyed-out button on paper is a defect. Section headings and table rows are
+   kept off page breaks, which is the difference between a document and a
+   dump. */
+@media print {
+  :root {
+    --color-bg: #ffffff;
+    --color-surface: #ffffff;
+    --color-surface-sunk: #ffffff;
+    --color-text-primary: #000000;
+    --color-text-secondary: #333333;
+    --color-border: #cccccc;
+    --color-border-strong: #666666;
+  }
+
+  header,
+  nav,
+  button,
+  input[type="range"],
+  [data-print="hide"] {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+    font-size: 10.5pt;
+  }
+
+  main > div,
+  main > section {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+
+  h1 { font-size: 18pt; }
+  h2 { font-size: 13pt; }
+
+  h1, h2, h3 { break-after: avoid-page; }
+  tr, li, dt, dd { break-inside: avoid-page; }
+  section { break-inside: auto; }
+
+  /* A link's destination is invisible on paper; the few that carry meaning
+     print theirs, the navigational ones are already hidden above. */
+  main a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 8pt;
+    color: #555;
+  }
+
+  /* The exposure bars are the one graphic worth keeping, and browsers drop
+     backgrounds by default. */
+  [class*="bar"] {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

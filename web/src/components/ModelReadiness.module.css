@@ -1,0 +1,58 @@
+/* What the planning model cannot answer about itself.
+   Set as a register, not a scorecard: counts and questions, no index. A single
+   percentage would invite comparison between businesses whose situations are
+   not comparable, and "0 of 5 drivers have a named owner" is a sentence
+   someone can act on in a way that "readiness 62%" is not. */
+
+.summary {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-tight);
+  max-width: 52ch;
+  margin: 0 0 var(--space-5);
+  text-wrap: balance;
+}
+
+.list { list-style: none; margin: 0; padding: 0; }
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-1) var(--space-4);
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.row:first-child { border-top: 1px solid var(--color-border-strong); }
+
+.question { font-family: var(--font-display); font-weight: 600; font-size: var(--text-sm); }
+
+.detail {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+  color: var(--color-text-secondary);
+}
+
+.answered .detail { color: var(--color-accent); }
+.open .detail { color: var(--color-negative); }
+
+/* The reason only appears on an open question: a closed one needs no
+   justification, and repeating it for all eleven would bury the gaps. */
+.why {
+  grid-column: 1 / -1;
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  max-width: 72ch;
+}
+
+.note {
+  margin: var(--space-5) 0 0;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  max-width: 72ch;
+}

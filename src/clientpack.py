@@ -483,11 +483,13 @@ def _validate_driver(driver_id: str, spec: DriverSpec) -> None:
                 f"Driver {driver_id!r} exposure_range [{low}, {high}] falls outside the model's own "
                 f"domain [{spec.min}, {spec.max}] — the forecast is not defined there"
             )
-    elif spec.guidance_low is None or spec.guidance_high is None:
-        raise ClientPackError(
-            f"Driver {driver_id!r} has neither an exposure_range nor a disclosed guidance range, "
-            f"so its financial exposure cannot be sized. Declare one."
-        )
+    # A driver with neither an exposure_range nor a disclosed guidance band is
+    # allowed. It used to be rejected, which meant a real client's model could
+    # not be opened at all until every range had been agreed — the one thing
+    # nobody has on day one of an engagement. Such a driver is carried as
+    # unquantified: it appears in the model, is excluded from the ranking, and
+    # is reported as a gap by src/readiness.py. Refusing to start says less
+    # than showing what is missing.
     if spec.role not in ("base", "add", "delta"):
         raise ClientPackError(f"Driver {driver_id!r} has role {spec.role!r} (want base, add or delta)")
 

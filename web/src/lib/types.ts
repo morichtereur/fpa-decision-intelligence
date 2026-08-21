@@ -325,3 +325,26 @@ export interface BacktestVintage extends BacktestResult {
   guidance_published: string;
   guidance_phrase: string;
 }
+
+export interface ReadinessCheck {
+  id: string;
+  scope: "driver" | "model";
+  question: string;
+  why: string;
+  detail: string;
+  complete: boolean;
+  answered?: number;
+  total?: number;
+  missing: { driver_id: string; label: string }[];
+}
+
+export interface Readiness {
+  client: string;
+  driver_count: number;
+  checks: ReadinessCheck[];
+  answered: number;
+  total: number;
+  gaps: { id: string; question: string; detail: string; why: string }[];
+  summary: string;
+  note: string;
+}

@@ -157,6 +157,11 @@ def variance_bridge(metric: str = "free_cash_flow", client: str | None = ClientQ
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
+@app.get("/api/readiness")
+def model_readiness(client: str | None = ClientQuery):
+    return service.get_readiness(_client(client))
+
+
 @app.get("/api/decision-rules")
 def decision_rules(client: str | None = ClientQuery):
     return service.get_decision_rules(_client(client))
