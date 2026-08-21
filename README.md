@@ -4,6 +4,15 @@
 into quantified financial exposures, ranked management priorities and
 traceable actions.**
 
+### [▶ Open the live accelerator](https://fpa-decision-intelligence.vercel.app)
+
+Start on **Priorities** for the argument in one screen, or switch the planning
+model in the top-left from *adidas · Public Data* to *Manufacturing · Synthetic
+Demo* to see the same engine driven by a different business.
+
+> The API sleeps on its free tier, so the first page load after a quiet period
+> takes about a minute while it wakes. Subsequent loads are immediate.
+
 ![The executive decision brief](docs/outlook.png)
 
 ## The problem

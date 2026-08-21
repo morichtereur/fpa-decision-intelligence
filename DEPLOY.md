@@ -69,6 +69,24 @@ CORS_ORIGIN_REGEX  = ^https://fpa-decision-intelligence-.*\.vercel\.app$
 The regex covers Vercel's per-branch preview deployments, which each get their
 own subdomain. Redeploy the API for the change to take.
 
+## Live
+
+- Site: https://fpa-decision-intelligence.vercel.app
+- API:  https://fpa-decision-intelligence-api.onrender.com
+
+Two settings caused every failure during the first deployment, and neither is
+visible from a build log:
+
+- **Root Directory must be `web`.** Left at the repository root, Vercel finds
+  `api/index.py`, deploys the Python API as the whole project, and every page
+  404s with `{"detail":"Not Found"}` — FastAPI answering for a site that was
+  never built.
+- **`NEXT_PUBLIC_API_BASE` must exist at build time and must NOT be marked
+  Sensitive.** It is compiled into the bundle, so a missing or withheld value
+  silently becomes `http://localhost:8000`, and every page reports the engine
+  unreachable. Redeploy with the build cache **off** after changing it, or the
+  old value survives.
+
 ## 4. Check it end to end
 
 - `/` renders the decision brief with a euro figure, not a blank panel
