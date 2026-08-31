@@ -22,3 +22,6 @@ node_modules/
 # macOS/sync duplicates ("file 2.png"). They appear without being asked for
 # and are never wanted in the repository.
 *[[:space:]][0-9].*
+
+# Local tooling notes.
+CLAUDE.md
